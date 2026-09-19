@@ -4,6 +4,15 @@ Application d'entraînement réflexe pour la conjugaison et la reconnaissance ra
 
 **Application en ligne :** [https://myternal.github.io/japanese-conjugation/](https://myternal.github.io/japanese-conjugation/)
 
+### Accès direct par mode
+
+- **Dokkai Flash (Reconnaissance QCM 1-4) :** [https://myternal.github.io/japanese-conjugation/?mode=dokkai](https://myternal.github.io/japanese-conjugation/?mode=dokkai)
+- **Sprint 60s (Chronomètre) :** [https://myternal.github.io/japanese-conjugation/?mode=sprint](https://myternal.github.io/japanese-conjugation/?mode=sprint)
+- **Survie (1 erreur = fin) :** [https://myternal.github.io/japanese-conjugation/?mode=survival](https://myternal.github.io/japanese-conjugation/?mode=survival)
+- **Libre (Classique) :** [https://myternal.github.io/japanese-conjugation/?mode=classic](https://myternal.github.io/japanese-conjugation/?mode=classic)
+
+*Astuce : tu peux combiner mode et niveau JLPT, par exemple [?mode=dokkai&level=n2](https://myternal.github.io/japanese-conjugation/?mode=dokkai&level=n2) pour lancer directement Dokkai Flash sur le vocabulaire N2.*
+
 ---
 
 ## Fonctionnalités

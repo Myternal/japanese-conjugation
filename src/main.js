@@ -437,9 +437,35 @@ class ConjugationApp {
 					}
 				}
 			})
-			.catch((err) => {
-				console.warn("Silent cloud pull error:", err);
+		// Deep-linking: detect mode & level from URL query parameters or hash
+		if (typeof window !== "undefined") {
+			const urlParams = new URLSearchParams(window.location.search);
+			let urlMode = urlParams.get("mode");
+			if (!urlMode && window.location.hash.startsWith("#mode=")) {
+				urlMode = window.location.hash.slice(6);
+			}
+			const urlLevel = urlParams.get("level");
+
+			if (urlLevel && ["n5", "n4", "n3", "n2", "all"].includes(urlLevel.toLowerCase())) {
+				this.setVocabLevel(urlLevel.toLowerCase(), false);
+			}
+
+			if (urlMode && Object.values(GAME_MODES).includes(urlMode.toLowerCase())) {
+				this.switchMode(urlMode.toLowerCase(), false);
+			}
+
+			window.addEventListener("popstate", () => {
+				const params = new URLSearchParams(window.location.search);
+				const popMode = params.get("mode") || GAME_MODES.CLASSIC;
+				if (Object.values(GAME_MODES).includes(popMode)) {
+					this.switchMode(popMode, false);
+				}
+				const popLevel = params.get("level");
+				if (popLevel && ["n5", "n4", "n3", "n2", "all"].includes(popLevel.toLowerCase())) {
+					this.setVocabLevel(popLevel.toLowerCase(), false);
+				}
 			});
+		}
 
 		optionsMenuInit();
 	}
@@ -617,9 +643,26 @@ class ConjugationApp {
 		});
 	}
 
-	setVocabLevel(level) {
+	setVocabLevel(level, updateUrl = true) {
 		this.selectedLevel = level;
 		localStorage.setItem("dojoSelectedLevel", level);
+
+		if (updateUrl && typeof window !== "undefined" && window.history) {
+			try {
+				const url = new URL(window.location.href);
+				if (level === "all") {
+					url.searchParams.delete("level");
+				} else {
+					url.searchParams.set("level", level);
+				}
+				window.history.replaceState(null, document.title, url.toString());
+			} catch (e) {}
+		}
+
+		// Update preset button active states in UI
+		document.querySelectorAll(".preset-btn").forEach((btn) => {
+			btn.classList.toggle("active", btn.getAttribute("data-level") === level);
+		});
 
 		const rawVocab = getVocabObjectForLevel(level, this.customWords);
 		this.state.completeWordList = createWordList(rawVocab);
@@ -633,8 +676,20 @@ class ConjugationApp {
 		return getVocabForLevel(this.selectedLevel, this.customWords);
 	}
 
-	switchMode(mode) {
+	switchMode(mode, updateUrl = true) {
 		this.session.setMode(mode, 60);
+
+		if (updateUrl && typeof window !== "undefined" && window.history) {
+			try {
+				const url = new URL(window.location.href);
+				if (mode === GAME_MODES.CLASSIC) {
+					url.searchParams.delete("mode");
+				} else {
+					url.searchParams.set("mode", mode);
+				}
+				window.history.replaceState(null, document.title, url.toString());
+			} catch (e) {}
+		}
 
 		// Update UI buttons
 		document.querySelectorAll(".mode-btn").forEach((btn) => {
