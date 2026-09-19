@@ -486,6 +486,36 @@ hr {
 	color: #ccc;
 }
 
+.form-description-hint {
+	display: block;
+	margin-top: 0.45rem;
+	font-size: 0.84rem;
+	font-weight: 500;
+	color: #b0b0b0;
+	line-height: 1.35;
+	text-align: center;
+	max-width: 90%;
+	margin-left: auto;
+	margin-right: auto;
+	animation: fadeIn 0.2s ease-in;
+}
+
+.form-description-hint .form-desc-icon {
+	opacity: 0.9;
+	margin-right: 0.25rem;
+}
+
+.option-sub-desc {
+	font-size: 0.78rem;
+	font-weight: normal;
+	color: #8e8e8e;
+	margin-left: 0.25rem;
+}
+
+body.hide-form-patterns .form-pattern-indicator {
+	display: none;
+}
+
 .advanced-section {
 	padding-left: 0.3rem;
 	padding-right: 0.4rem;

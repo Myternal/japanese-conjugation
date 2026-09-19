@@ -41,6 +41,10 @@ import {
 	silentPullOnStartup,
 	triggerAutoSync,
 } from "./engine/syncManager.js";
+import {
+	getConjugationDescription,
+	getConjugationFormLabel,
+} from "./engine/conjugationDescriptions.js";
 
 const isTouch = typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
 document.getElementById("press-any-key-text").textContent = isTouch
@@ -62,41 +66,16 @@ function wordTypeToDisplayText(type) {
 	return "";
 }
 
-function conjugationInqueryFormatting(conjugation) {
+function conjugationInqueryFormatting(conjugation, showHint = true, showPatterns = true) {
 	const tags = [];
+	const desc = getConjugationDescription(conjugation);
 
 	// Main conjugation type tag
-	let formLabel = "";
-	if (conjugation.type === CONJUGATION_TYPES.present) {
-		formLabel = "Présent";
-	} else if (conjugation.type === CONJUGATION_TYPES.past) {
-		formLabel = "Passé";
-	} else if (conjugation.type === CONJUGATION_TYPES.te) {
-		formLabel = "Forme en 〜て";
-	} else if (conjugation.type === CONJUGATION_TYPES.adverb) {
-		formLabel = "Adverbe";
-	} else if (conjugation.type === CONJUGATION_TYPES.volitional) {
-		formLabel = "Volitionnel (〜よう)";
-	} else if (conjugation.type === CONJUGATION_TYPES.passive) {
-		formLabel = "Passif (〜られる)";
-	} else if (conjugation.type === CONJUGATION_TYPES.causative) {
-		formLabel = "Causatif (〜させる)";
-	} else if (conjugation.type === CONJUGATION_TYPES.potential) {
-		formLabel = "Potentiel (〜る / られる)";
-	} else if (conjugation.type === CONJUGATION_TYPES.imperative) {
-		formLabel = "Impératif";
-	} else if (conjugation.type === CONJUGATION_TYPES.causativePassive) {
-		formLabel = "Causatif-Passif (〜させられる)";
-	} else if (conjugation.type === CONJUGATION_TYPES.ba) {
-		formLabel = "Conditionnel 〜ば";
-	} else if (conjugation.type === CONJUGATION_TYPES.tara) {
-		formLabel = "Conditionnel 〜たら";
-	} else if (conjugation.type === CONJUGATION_TYPES.tai) {
-		formLabel = "Désiratif 〜たい";
-	}
+	const formLabel = getConjugationFormLabel(conjugation.type, showPatterns);
 
 	if (formLabel) {
-		tags.push(`<span class="inquery-tag form-tag">${formLabel}</span>`);
+		const tooltipAttr = desc && desc.tooltip ? ` title="${escapeHtml(desc.tooltip)}"` : "";
+		tags.push(`<span class="inquery-tag form-tag"${tooltipAttr}>${formLabel}</span>`);
 	}
 
 	// Polarity tag (affirmative / negative)
@@ -113,7 +92,12 @@ function conjugationInqueryFormatting(conjugation) {
 		tags.push(`<span class="inquery-tag politeness-plain">Neutre</span>`);
 	}
 
-	return `<div class="conjugation-inquery">${tags.join("")}</div>`;
+	let html = `<div class="conjugation-inquery">${tags.join("")}</div>`;
+	if (showHint && desc && desc.shortText) {
+		html += `<div class="form-description-hint"><span class="form-desc-icon">💡</span>${escapeHtml(desc.shortText)}</div>`;
+	}
+
+	return html;
 }
 
 function changeVerbBoxFontColor(color) {
@@ -123,7 +107,7 @@ function changeVerbBoxFontColor(color) {
 	}
 }
 
-function updateCurrentWord(word) {
+function updateCurrentWord(word, settings = null) {
 	toggleBackgroundNone(document.getElementById("verb-box"), true);
 	if (!word || !word.wordJSON) {
 		document.getElementById("verb-text").innerHTML = "Aucun mot";
@@ -135,21 +119,23 @@ function updateCurrentWord(word) {
 		return;
 	}
 
+	const showHint = !settings || settings.formHelp !== false;
+	const showPatterns = !settings || settings.formPatterns !== false;
 	document.getElementById("verb-text").innerHTML = sanitizeRubyHtml(word.wordJSON.kanji);
 	document.getElementById("translation").textContent = word.wordJSON.eng;
 	document.getElementById("verb-type").textContent = "\u00A0";
 	document.getElementById("conjugation-inquery-text").innerHTML =
-		conjugationInqueryFormatting(word.conjugation);
+		conjugationInqueryFormatting(word.conjugation, showHint, showPatterns);
 }
 
-function loadNewWord(wordList) {
+function loadNewWord(wordList, settings = null) {
 	if (!wordList || wordList.length === 0) {
-		updateCurrentWord(null);
+		updateCurrentWord(null, settings);
 		changeVerbBoxFontColor("rgb(232, 232, 232)");
 		return null;
 	}
 	const word = pickRandomWord(wordList);
-	updateCurrentWord(word);
+	updateCurrentWord(word, settings);
 	changeVerbBoxFontColor("rgb(232, 232, 232)");
 	return word;
 }
@@ -602,7 +588,7 @@ class ConjugationApp {
 		const rawVocab = getVocabObjectForLevel(level, this.customWords);
 		this.state.completeWordList = createWordList(rawVocab);
 		this.applySettingsUpdateWordList();
-		this.state.currentWord = loadNewWord(this.state.currentWordList);
+		this.state.currentWord = loadNewWord(this.state.currentWordList, this.state.settings);
 		if (this.state.activeScreen !== SCREENS.settings) {
 			this.loadMainView();
 		}
@@ -707,10 +693,10 @@ class ConjugationApp {
 		}
 
 		if (this.state.loadWordOnReset || !this.state.currentWord) {
-			this.state.currentWord = loadNewWord(this.state.currentWordList);
+			this.state.currentWord = loadNewWord(this.state.currentWordList, this.state.settings);
 			this.state.loadWordOnReset = false;
 		} else {
-			updateCurrentWord(this.state.currentWord);
+			updateCurrentWord(this.state.currentWord, this.state.settings);
 		}
 
 		showFurigana(
@@ -1138,7 +1124,7 @@ class ConjugationApp {
 		}
 
 		this.applySettingsUpdateWordList();
-		this.state.currentWord = loadNewWord(this.state.currentWordList);
+		this.state.currentWord = loadNewWord(this.state.currentWordList, this.state.settings);
 		this.state.wordsRecentlySeenQueue = [];
 
 		this.state.currentStreak0OnReset = false;

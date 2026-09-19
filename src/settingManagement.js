@@ -18,6 +18,8 @@ const DEFAULT_NON_CONJUGATION_SETTINGS = Object.freeze([
 	"translation",
 	"translationTiming",
 	"streak",
+	"formHelp",
+	"formPatterns",
 ]);
 
 let nonConjugationSettings = null;
@@ -397,6 +399,9 @@ function showHideTranslationSubOptions() {
 
 export function applyNonConjugationSettings(settings) {
 	showStreak(settings.streak);
+	if (typeof document !== "undefined" && document.body) {
+		document.body.classList.toggle("hide-form-patterns", settings.formPatterns === false);
+	}
 	// showTranslation and showFurigana are dependent on the state, so we can't set them here
 }
 

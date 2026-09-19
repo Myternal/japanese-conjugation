@@ -184,6 +184,8 @@
                             </div>
                         </div>
                         <div class="option-row"><input id="streak-checkbox" type="checkbox" name="streak"><label for="streak-checkbox">Afficher les compteurs de série</label></div>
+                        <div class="option-row"><input id="formhelp-checkbox" type="checkbox" name="formHelp"><label for="formhelp-checkbox">Afficher l'explication des modes (ex : Causatif = faire faire)</label></div>
+                        <div class="option-row"><input id="formpatterns-checkbox" type="checkbox" name="formPatterns"><label for="formpatterns-checkbox">Afficher les formes de rappel (~させる, ~られる...)</label></div>
                     </div>
 
                     <div id="conjugation-settings">
@@ -209,19 +211,19 @@
                                         <td rowspan="7" class="settings-error-text display-none">*Choisis au moins 1 option dans cette catégorie</td>
                                     </tr>
                                     <tr><td><input id="verbpast-checkbox" type="checkbox" name="verbpast" class="verb-has-variations"><label for="verbpast-checkbox">Passé</label></td></tr>
-                                    <tr><td><input id="verbte-checkbox" type="checkbox" name="verbte"><label for="verbte-checkbox">Forme en て</label></td></tr>
-                                    <tr><td><input id="verbvolitional-checkbox" type="checkbox" name="verbvolitional" class="verb-has-politeness"><label for="verbvolitional-checkbox">Volitif (~よう)</label></td></tr>
-                                    <tr><td><input id="verbba-checkbox" type="checkbox" name="verbba" class="verb-has-variations"><label for="verbba-checkbox">Conditionnel (~ば)</label></td></tr>
-                                    <tr><td><input id="verbtara-checkbox" type="checkbox" name="verbtara" class="verb-has-variations"><label for="verbtara-checkbox">Conditionnel (~たら)</label></td></tr>
-                                    <tr><td><input id="verbtai-checkbox" type="checkbox" name="verbtai" class="verb-has-variations"><label for="verbtai-checkbox">Désiratif (~たい)</label></td></tr>
+                                    <tr><td><input id="verbte-checkbox" type="checkbox" name="verbte"><label for="verbte-checkbox">Forme en <span class="form-pattern-indicator">て</span></label></td></tr>
+                                    <tr><td><input id="verbvolitional-checkbox" type="checkbox" name="verbvolitional" class="verb-has-politeness"><label for="verbvolitional-checkbox">Volitif <span class="form-pattern-indicator">(~よう)</span> <span class="option-sub-desc">(faisons / intention)</span></label></td></tr>
+                                    <tr><td><input id="verbba-checkbox" type="checkbox" name="verbba" class="verb-has-variations"><label for="verbba-checkbox">Conditionnel <span class="form-pattern-indicator">(~ば)</span></label></td></tr>
+                                    <tr><td><input id="verbtara-checkbox" type="checkbox" name="verbtara" class="verb-has-variations"><label for="verbtara-checkbox">Conditionnel <span class="form-pattern-indicator">(~たら)</span></label></td></tr>
+                                    <tr><td><input id="verbtai-checkbox" type="checkbox" name="verbtai" class="verb-has-variations"><label for="verbtai-checkbox">Désiratif <span class="form-pattern-indicator">(~たい)</span> <span class="option-sub-desc">(vouloir faire)</span></label></td></tr>
                                 </table>
                                 <div class="advanced-section">
                                     <div id="advanced-text">AVANCÉ</div>
-                                    <div class="advanced-option"><input id="verbpassive-checkbox" type="checkbox" name="verbpassive" class="verb-has-variations"><label for="verbpassive-checkbox">Passif (~られる)</label></div>
-                                    <div class="advanced-option"><input id="verbcausative-checkbox" type="checkbox" name="verbcausative" class="verb-has-variations"><label for="verbcausative-checkbox">Causatif (~させる)</label></div>
-                                    <div class="advanced-option"><input id="verbcausativepassive-checkbox" type="checkbox" name="verbcausativepassive" class="verb-has-variations"><label for="verbcausativepassive-checkbox">Causatif-Passif (~させられる)</label></div>
-                                    <div class="advanced-option"><input id="verbpotential-checkbox" type="checkbox" name="verbpotential" class="verb-has-variations"><label for="verbpotential-checkbox">Potentiel (~られる/れる)</label></div>
-                                    <div class="advanced-option"><input id="verbimperative-checkbox" type="checkbox" name="verbimperative"><label for="verbimperative-checkbox">Impératif (~ろ)</label></div>
+                                    <div class="advanced-option"><input id="verbpassive-checkbox" type="checkbox" name="verbpassive" class="verb-has-variations"><label for="verbpassive-checkbox">Passif <span class="form-pattern-indicator">(~られる)</span> <span class="option-sub-desc">(subir / être [fait])</span></label></div>
+                                    <div class="advanced-option"><input id="verbcausative-checkbox" type="checkbox" name="verbcausative" class="verb-has-variations"><label for="verbcausative-checkbox">Causatif <span class="form-pattern-indicator">(~させる)</span> <span class="option-sub-desc">(faire faire / laisser faire)</span></label></div>
+                                    <div class="advanced-option"><input id="verbcausativepassive-checkbox" type="checkbox" name="verbcausativepassive" class="verb-has-variations"><label for="verbcausativepassive-checkbox">Causatif-Passif <span class="form-pattern-indicator">(~させられる)</span> <span class="option-sub-desc">(être forcé de faire)</span></label></div>
+                                    <div class="advanced-option"><input id="verbpotential-checkbox" type="checkbox" name="verbpotential" class="verb-has-variations"><label for="verbpotential-checkbox">Potentiel <span class="form-pattern-indicator">(~られる/れる)</span> <span class="option-sub-desc">(pouvoir faire)</span></label></div>
+                                    <div class="advanced-option"><input id="verbimperative-checkbox" type="checkbox" name="verbimperative"><label for="verbimperative-checkbox">Impératif <span class="form-pattern-indicator">(~ろ)</span> <span class="option-sub-desc">(ordre direct)</span></label></div>
                                 </div>
                             </div>
                             <div id="verb-variations-container">
@@ -268,8 +270,8 @@
                                 </tr>
                                 <tr><td><input id="adjectivepast-checkbox" type="checkbox" name="adjectivepast" class="adjective-has-variations"><label for="adjectivepast-checkbox">Passé</label></td></tr>
                                 <tr><td><input id="adjectiveadverb-checkbox" type="checkbox" name="adjectiveadverb"><label for="adjectiveadverb-checkbox">Adverbe</label></td></tr>
-                                <tr><td><input id="adjectiveba-checkbox" type="checkbox" name="adjectiveba" class="adjective-has-variations"><label for="adjectiveba-checkbox">Conditionnel (~ば)</label></td></tr>
-                                <tr><td><input id="adjectivetara-checkbox" type="checkbox" name="adjectivetara" class="adjective-has-variations"><label for="adjectivetara-checkbox">Conditionnel (~たら)</label></td></tr>
+                                <tr><td><input id="adjectiveba-checkbox" type="checkbox" name="adjectiveba" class="adjective-has-variations"><label for="adjectiveba-checkbox">Conditionnel <span class="form-pattern-indicator">(~ば)</span></label></td></tr>
+                                <tr><td><input id="adjectivetara-checkbox" type="checkbox" name="adjectivetara" class="adjective-has-variations"><label for="adjectivetara-checkbox">Conditionnel <span class="form-pattern-indicator">(~たら)</span></label></td></tr>
                             </table>
                             <div id="adjective-variations-container">
                                 <div class="options-group">
