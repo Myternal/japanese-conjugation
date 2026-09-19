@@ -70,16 +70,24 @@ export function generateDokkaiChallenge(wordList) {
 	if (allConjugations.length === 0) return null;
 
 	// Filter out bare dictionary form if present
-	const interestingConjugations = allConjugations.filter((c) => {
+	let interestingConjugations = allConjugations.filter((c) => {
 		if (c.type === CONJUGATION_TYPES.present && c.affirmative && !c.polite && wordJSON.type !== "na") {
 			return false;
 		}
 		return c.validAnswers && c.validAnswers.length > 0;
 	});
 
+	if (interestingConjugations.length === 0) {
+		interestingConjugations = allConjugations.filter((c) => c.validAnswers && c.validAnswers.length > 0);
+	}
+	if (interestingConjugations.length === 0) return null;
+
 	const targetConjugation = interestingConjugations[
 		Math.floor(Math.random() * interestingConjugations.length)
 	];
+	if (!targetConjugation || !targetConjugation.validAnswers || targetConjugation.validAnswers.length === 0) {
+		return null;
+	}
 
 	// Pick one valid answer as the challenge prompt
 	const answers = targetConjugation.validAnswers;
@@ -88,9 +96,12 @@ export function generateDokkaiChallenge(wordList) {
 	const correctLabel = formatConjugationLabel(wordJSON, targetConjugation);
 
 	// Generate plausible distractors
-	// 1. Same word with other conjugations
+	// 1. Same word with other conjugations (excluding homographs that share the exact prompt text)
 	const otherConjugationsSameWord = interestingConjugations.filter(
-		(c) => c !== targetConjugation && formatConjugationLabel(wordJSON, c) !== correctLabel
+		(c) =>
+			c !== targetConjugation &&
+			formatConjugationLabel(wordJSON, c) !== correctLabel &&
+			!(c.validAnswers && c.validAnswers.includes(promptText))
 	);
 
 	const distractorLabels = new Set();
@@ -115,9 +126,34 @@ export function generateDokkaiChallenge(wordList) {
 			if (otherConjs.length > 0) {
 				const randomOtherConj = otherConjs[Math.floor(Math.random() * otherConjs.length)];
 				const label = formatConjugationLabel(otherJSON, randomOtherConj);
-				if (label !== correctLabel) {
+				if (
+					label !== correctLabel &&
+					!(randomOtherConj.validAnswers && randomOtherConj.validAnswers.includes(promptText))
+				) {
 					distractorLabels.add(label);
 				}
+			}
+			if (distractorLabels.size >= 3) break;
+		}
+	}
+
+	// 3. Fallback dummy labels if still < 3 distractors
+	if (distractorLabels.size < 3) {
+		const fallbackForms = [
+			CONJUGATION_TYPES.past,
+			CONJUGATION_TYPES.te,
+			CONJUGATION_TYPES.potential,
+			CONJUGATION_TYPES.passive,
+			CONJUGATION_TYPES.causative,
+			CONJUGATION_TYPES.volitional,
+			CONJUGATION_TYPES.ba,
+			CONJUGATION_TYPES.tara,
+			CONJUGATION_TYPES.tai,
+		];
+		for (const type of fallbackForms) {
+			const dummyLabel = `${toKanjiPlusHiragana(wordJSON.kanji)} • ${FORM_DESCRIPTIONS_FR[type] || type}`;
+			if (dummyLabel !== correctLabel) {
+				distractorLabels.add(dummyLabel);
 			}
 			if (distractorLabels.size >= 3) break;
 		}

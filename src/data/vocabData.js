@@ -1,15 +1,94 @@
 import { wordData } from "../wordData.js";
+import { toHiragana } from "../engine/conjugator.js";
+
+// Core JLPT N5 words partitioning
+const n5VerbKanji = new Set([
+	"<ruby>行<rt>い</rt></ruby>く",
+	"する",
+	"<ruby>来<rt>く</rt></ruby>る",
+	"ある",
+	"いる",
+	"<ruby>食<rt>た</rt></ruby>べる",
+	"<ruby>起<rt>お</rt></ruby>きる",
+	"<ruby>出<rt>で</rt></ruby>る",
+	"<ruby>見<rt>み</rt></ruby>る",
+	"<ruby>開<rt>あ</rt></ruby>ける",
+	"<ruby>寝<rt>ね</rt></ruby>る",
+	"<ruby>閉<rt>し</rt></ruby>める",
+	"<ruby>着<rt>き</rt></ruby>る",
+	"<ruby>降<rt>お</rt></ruby>りる",
+	"あげる",
+	"<ruby>忘<rt>わす</rt></ruby>れる",
+	"<ruby>覚<rt>おぼ</rt></ruby>える",
+	"<ruby>飲<rt>の</rt></ruby>む",
+	"<ruby>買<rt>か</rt></ruby>う",
+	"<ruby>会<rt>あ</rt></ruby>う",
+	"<ruby>言<rt>い</rt></ruby>う",
+	"<ruby>待<rt>ま</rt></ruby>つ",
+	"<ruby>立<rt>た</rt></ruby>つ",
+	"<ruby>聞<rt>き</rt></ruby>く",
+	"<ruby>歩<rt>ある</rt></ruby>く",
+	"<ruby>書<rt>か</rt></ruby>く",
+	"<ruby>読<rt>よ</rt></ruby>む",
+	"<ruby>休<rt>やす</rt></ruby>む",
+	"<ruby>遊<rt>あそ</rt></ruby>ぶ",
+	"<ruby>話<rt>はな</rt></ruby>す",
+	"<ruby>泳<rt>およ</rt></ruby>ぐ",
+	"<ruby>帰<rt>かえ</rt></ruby>る",
+	"<ruby>乗<rt>の</rt></ruby>る",
+	"<ruby>知<rt>し</rt></ruby>る",
+	"<ruby>作<rt>つく</rt></ruby>る",
+	"なる",
+	"<ruby>分<rt>わ</rt></ruby>かる",
+	"<ruby>取<rt>と</rt></ruby>る",
+	"<ruby>使<rt>つか</rt></ruby>う",
+	"<ruby>持<rt>も</rt></ruby>つ",
+	"<ruby>終<rt>お</rt></ruby>わる",
+	"<ruby>死<rt>し</rt></ruby>ぬ",
+	"<ruby>勉<rt>べん</rt></ruby><ruby>強<rt>きょう</rt></ruby>する",
+]);
+
+const n5AdjKanji = new Set([
+	"いい",
+	"かっこいい",
+	"<ruby>赤<rt>あか</rt></ruby>い",
+	"<ruby>新<rt>あたら</rt></ruby>しい",
+	"<ruby>暑<rt>あつ</rt></ruby>い",
+	"<ruby>危<rt>あぶ</rt></ruby>ない",
+	"<ruby>美<rt>お</rt></ruby><ruby>味<rt>い</rt></ruby>しい",
+	"<ruby>大<rt>おお</rt></ruby>きい",
+	"<ruby>遅<rt>おそ</rt></ruby>い",
+	"<ruby>面<rt>おも</rt></ruby><ruby>白<rt>しろ</rt></ruby>い",
+	"<ruby>可<rt>か</rt></ruby><ruby>愛<rt>わい</rt></ruby>い",
+	"<ruby>寒<rt>さむ</rt></ruby>い",
+	"<ruby>高<rt>たか</rt></ruby>い",
+	"<ruby>楽<rt>たの</rt></ruby>しい",
+	"<ruby>小<rt>ちい</rt></ruby>さい",
+	"<ruby>速<rt>はや</rt></ruby>い",
+	"<ruby>古<rt>ふる</rt></ruby>い",
+	"<ruby>欲<rt>ほ</rt></ruby>しい",
+	"<ruby>安<rt>やす</rt></ruby>い",
+	"<ruby>好<rt>す</rt></ruby>き",
+	"きれい",
+	"<ruby>嫌<rt>きら</rt></ruby>い",
+	"<ruby>静<rt>しず</rt></ruby>か",
+	"<ruby>元<rt>げん</rt></ruby><ruby>気<rt>き</rt></ruby>",
+	"<ruby>有<rt>ゆう</rt></ruby><ruby>名<rt>めい</rt></ruby>",
+	"<ruby>色<rt>いろ</rt></ruby><ruby>々<rt>いろ</rt></ruby>",
+	"<ruby>大<rt>だい</rt></ruby><ruby>丈<rt>じょう</rt></ruby><ruby>夫<rt>ぶ</rt></ruby>",
+	"<ruby>下<rt>へ</rt></ruby><ruby>手<rt>た</rt></ruby>",
+]);
 
 // Additional JLPT N4, N3, N2 verbs and adjectives with transitivity and furigana tags
 export const EXTENDED_JLPT_VOCAB = {
 	n5: [
 		// Baseline from existing wordData + core N5
-		...wordData.verbs.slice(0, 35).map((v) => ({ ...v, level: "n5" })),
-		...wordData.adjectives.slice(0, 20).map((a) => ({ ...a, level: "n5" })),
+		...wordData.verbs.filter((v) => n5VerbKanji.has(v.kanji)).map((v) => ({ ...v, level: "n5" })),
+		...wordData.adjectives.filter((a) => n5AdjKanji.has(a.kanji)).map((a) => ({ ...a, level: "n5" })),
 	],
 	n4: [
-		...wordData.verbs.slice(35).map((v) => ({ ...v, level: "n4" })),
-		...wordData.adjectives.slice(20).map((a) => ({ ...a, level: "n4" })),
+		...wordData.verbs.filter((v) => !n5VerbKanji.has(v.kanji)).map((v) => ({ ...v, level: "n4" })),
+		...wordData.adjectives.filter((a) => !n5AdjKanji.has(a.kanji)).map((a) => ({ ...a, level: "n4" })),
 		// Essential N4 additions
 		{ kanji: "<ruby>起<rt>お</rt></ruby>こす", type: "u", eng: "wake someone up (transitive)", level: "n4" },
 		{ kanji: "<ruby>落<rt>お</rt></ruby>ちる", type: "ru", eng: "fall, drop (intransitive)", level: "n4" },
@@ -85,54 +164,136 @@ export const EXTENDED_JLPT_VOCAB = {
 	],
 };
 
+function convertBracketsToRuby(str) {
+	return str.replace(/([一-龯々]+)\[([ぁ-んァ-ヶー]+)\]/g, "<ruby>$1<rt>$2</rt></ruby>");
+}
+
+let knownWordsMap = null;
+function getKnownWord(cleanWord) {
+	if (!knownWordsMap) {
+		knownWordsMap = new Map();
+		const allPredefined = [
+			...wordData.verbs,
+			...wordData.adjectives,
+			...EXTENDED_JLPT_VOCAB.n4,
+			...EXTENDED_JLPT_VOCAB.n3,
+			...EXTENDED_JLPT_VOCAB.n2,
+		];
+		for (const item of allPredefined) {
+			const plain = item.kanji.replace(/<ruby>|<\/ruby>|<rt>.*?<\/rt>/g, "");
+			if (!knownWordsMap.has(plain)) {
+				knownWordsMap.set(plain, item);
+			}
+			const kana = toHiragana(item.kanji);
+			if (kana && !knownWordsMap.has(kana)) {
+				knownWordsMap.set(kana, item);
+			}
+		}
+		// Alias for 良い -> いい
+		const iiWord = allPredefined.find((i) => i.kanji === "いい");
+		if (iiWord && !knownWordsMap.has("良い")) {
+			knownWordsMap.set("良い", { ...iiWord, kanji: "良い" });
+		}
+	}
+	if (knownWordsMap.has(cleanWord)) {
+		return knownWordsMap.get(cleanWord);
+	}
+	// Fallback for na-adjectives entered with trailing な (e.g. 静かな -> 静か)
+	if (cleanWord.endsWith("な") && cleanWord.length > 1) {
+		const stem = cleanWord.slice(0, -1);
+		const candidate = knownWordsMap.get(stem);
+		if (candidate && candidate.type === "na") {
+			return candidate;
+		}
+	}
+	return undefined;
+}
+
 /**
- * Parses user-pasted text (comma, newline, or tab separated) into verb/adjective objects
- * Ex: "食べる, 飲む, 行く" or "食べる\teat\n飲む\tdrink"
+ * Parses user-pasted text (comma, newline, tab, or Anki format) into verb/adjective objects
+ * Ex: "食べる, 飲む, 行く", "食[た]べる\teat", or "食べる - to eat"
  */
 export function parseCustomWordList(rawText) {
 	if (!rawText || !rawText.trim()) return [];
 
 	const lines = rawText
-		.split(/[\n,;]+/)
+		.split(/[\n,;、；]+/)
 		.map((s) => s.trim())
 		.filter(Boolean);
 
 	const parsed = [];
 
 	for (const line of lines) {
-		const parts = line.split(/[\t|]+/).map((p) => p.trim());
-		const word = parts[0];
+		const parts = line.split(/[\t|]|\s+[:\-–—]\s+/).map((p) => p.trim());
+		let word = parts[0];
 		const eng = parts[1] || "";
 
 		if (!word) continue;
 
-		// Deduce verb/adj type
-		let type = "u";
-		if (word.endsWith("する")) {
-			type = "irv";
-		} else if (word.endsWith("くる") || word.endsWith("来る")) {
-			type = "irv";
-		} else if (word === "行く" || word === "いく") {
-			type = "irv";
-		} else if (word === "ある") {
-			type = "irv";
-		} else if (word.endsWith("い") && !word.endsWith("る")) {
-			type = word === "いい" || word.endsWith("かっこいい") ? "ira" : "i";
-		} else if (word.endsWith("る")) {
-			// Check if preceding vowel is e or i for ichidan heuristic
-			const pre = word.charAt(word.length - 2);
-			const isIchidanCandidate = /[いきしちにひみりぎじぢびぴえけせてねへめれげぜでべぺ]/.test(pre);
-			type = isIchidanCandidate ? "ru" : "u";
-		} else {
-			type = "u";
+		// 1. If user provided Anki bracket notation like 食[た]べる
+		if (/\[[ぁ-んァ-ヶー]+\]/.test(word)) {
+			word = convertBracketsToRuby(word);
 		}
 
-		parsed.push({
-			kanji: word,
+		const plainWord = word.replace(/<ruby>|<\/ruby>|<rt>.*?<\/rt>/g, "");
+
+		// 2. If it's a known dictionary word without ruby tags, adopt full ruby furigana
+		const known = getKnownWord(plainWord);
+		let finalKanji = word;
+		let type = known ? known.type : "u";
+		let meaning = eng;
+
+		if (known) {
+			if (!word.includes("<ruby>")) {
+				finalKanji = known.kanji;
+			}
+			if (!meaning) {
+				meaning = known.eng;
+			}
+		} else {
+			// Deduce verb/adj type from plain text
+			if (plainWord.endsWith("する")) {
+				type = "irv";
+			} else if (plainWord.endsWith("くる") || plainWord.endsWith("来る")) {
+				type = "irv";
+			} else if (plainWord.endsWith("行く") || plainWord.endsWith("いく")) {
+				type = "irv";
+			} else if (plainWord === "ある") {
+				type = "irv";
+			} else if (plainWord.endsWith("い") && !plainWord.endsWith("る")) {
+				type = plainWord === "いい" || plainWord === "良い" || plainWord.endsWith("かっこいい") ? "ira" : "i";
+			} else if (plainWord.endsWith("な") && !plainWord.endsWith("ない") && plainWord.length > 1) {
+				type = "na";
+				finalKanji = finalKanji.replace(/な$/, "");
+			} else if (plainWord.endsWith("る")) {
+				const pre = plainWord.charAt(plainWord.length - 2);
+				const isIchidanCandidate = /[いきしちにひみりぎじぢびぴえけせてねへめれげぜでべぺ]/.test(pre);
+				type = isIchidanCandidate ? "ru" : "u";
+			} else {
+				type = "u";
+			}
+		}
+
+		const customEntry = {
+			kanji: finalKanji,
 			type,
-			eng: eng || "Custom word",
+			eng: meaning || "Custom word",
 			level: "custom",
-		});
+		};
+
+		if (known?.group) {
+			customEntry.group = known.group;
+		} else if (plainWord.endsWith("行く") || plainWord.endsWith("いく")) {
+			customEntry.group = "iku";
+		} else if (plainWord.endsWith("する")) {
+			customEntry.group = "suru";
+		}
+
+		if (known?.altOkurigana) {
+			customEntry.altOkurigana = [...known.altOkurigana];
+		}
+
+		parsed.push(customEntry);
 	}
 
 	return parsed;

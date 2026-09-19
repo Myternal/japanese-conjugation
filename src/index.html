@@ -89,12 +89,13 @@
                 </div>
 
                 <div id="settings-container">
-                    <div id="settings-child-container">
-                        <table id="settings-table">
-                            <td style="width:29%"></td>
-                            <td style="width:42%" id="press-any-key-text" class="display-none">Press Enter/Return to continue</td>
-                            <td style="width:29%"><button id="options-button" type="button">Options</button></td>
-                        </table>
+                    <div id="bottom-action-bar">
+                        <div class="bottom-bar-spacer"></div>
+                        <div id="press-any-key-text" class="display-none">Appuie sur Entrée pour continuer</div>
+                        <div class="bottom-bar-action">
+                            <button id="end-session-btn" type="button" title="Afficher le bilan de session et exporter les erreurs">Bilan</button>
+                            <button id="options-button" type="button">Options</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -131,8 +132,8 @@
                         <div class="sync-sub-section">
                             <h4>1. Transfert rapide (Lien & QR Code)</h4>
                             <p class="sub-text">Scanne ce QR code avec ton smartphone pour importer immédiatement ta progression :</p>
-                            <div id="qr-code-container" style="text-align: center; margin: 0.5rem 0;">
-                                <img id="qr-code-img" alt="QR Code de synchronisation" style="display:none; max-width: 160px; border-radius: 8px; border: 4px solid #fff; margin: auto;">
+                            <div id="qr-code-container" class="qr-code-box">
+                                <img id="qr-code-img" class="sync-qr-img" alt="QR Code de synchronisation">
                             </div>
                             <div class="sync-actions">
                                 <button type="button" id="btn-show-qr" class="action-btn">Afficher le QR Code</button>
@@ -141,28 +142,28 @@
                             </div>
                         </div>
 
-                        <hr style="border: 0; border-top: 1px solid #444; margin: 0.8rem 0;">
+                        <hr class="sync-divider">
 
                         <!-- 2. GitHub Gist Cloud Sync -->
                         <div class="sync-sub-section">
                             <h4>2. Synchronisation Cloud (GitHub Gist)</h4>
                             <p class="sub-text">Connecte ton compte GitHub pour synchroniser automatiquement toutes tes sessions, streaks et réglages :</p>
-                            <div id="cloud-connected-box" class="display-none" style="margin: 0.5rem 0; padding: 0.5rem; background: #1b3320; border: 1px solid #2e7d32; border-radius: 6px;">
-                                <div style="color: #00e676; font-weight: bold; font-size: 0.8rem;">Statut : Cloud activé</div>
-                                <div style="font-size: 0.72rem; color: #ccc; margin: 0.2rem 0;">Chaque session est automatiquement synchronisée avec ton compte GitHub.</div>
-                                <button type="button" id="btn-cloud-disconnect" class="action-btn" style="margin-top: 0.4rem; padding: 0.2rem 0.5rem; font-size: 0.75rem;">Se déconnecter du Cloud</button>
+                            <div id="cloud-connected-box" class="cloud-status-card display-none">
+                                <div class="cloud-status-badge">Statut : Cloud activé</div>
+                                <div class="cloud-status-desc">Chaque session est automatiquement synchronisée avec ton compte GitHub.</div>
+                                <button type="button" id="btn-cloud-disconnect" class="action-btn action-btn-sm">Se déconnecter du Cloud</button>
                             </div>
                             <div id="cloud-connect-box">
                                 <div class="sync-field">
                                     <label for="gist-token-input">Token GitHub (permission <code>gist</code>) :</label>
-                                    <a href="https://github.com/settings/tokens/new?description=Dojo+Reflexe+Sync&scopes=gist" target="_blank" rel="noopener noreferrer" style="color: #64b5f6; font-size: 0.75rem; text-decoration: underline; display: inline-block; margin-bottom: 0.3rem;">Générer un token GitHub (permission gist pré-cochée)</a>
+                                    <a href="https://github.com/settings/tokens/new?description=Dojo+Reflexe+Sync&scopes=gist" target="_blank" rel="noopener noreferrer" class="token-helper-link">Générer un token GitHub (permission gist pré-cochée)</a>
                                     <input type="password" id="gist-token-input" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off">
                                 </div>
-                                <div class="sync-actions" style="margin-top: 0.5rem;">
+                                <div class="sync-actions sync-actions-mt">
                                     <button type="button" id="btn-cloud-connect" class="action-btn primary-btn">Activer la synchronisation Cloud</button>
                                 </div>
                             </div>
-                            <div id="gist-status-msg" style="font-size: 0.75rem; margin-top: 0.4rem;"></div>
+                            <div id="gist-status-msg" class="gist-status-text"></div>
                         </div>
                     </div>
 
@@ -187,11 +188,11 @@
                     <div id="conjugation-settings">
                         <hr>
                         <div id="verbs-h3-container">
-                            <input id="verbs-checkbox" type="checkbox" name="verb"><label for="verbs-checkbox"><h3>Verbs</h3></label>
+                            <input id="verbs-checkbox" type="checkbox" name="verb"><label for="verbs-checkbox" class="options-h3-label">Verbs</label>
                             <span id="top-must-choose" class="settings-error-text display-none">*Must choose at least 1 option from this category</span>
                         </div>
                         <div class="options-indent" id="verb-options-container">
-                            <table style="width:100%" class="options-group">
+                            <table class="options-group">
                                 <tr>
                                     <td><input id="verbu-checkbox" type="checkbox" name="verbu"><label for="verbu-checkbox">う-verbs</label></td>
                                     <td rowspan="3" class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
@@ -201,15 +202,15 @@
                             </table>
                             <hr>
                             <div id="verb-conjugation-type-group" class="options-group">
-                                <table style="width:100%">
+                                <table>
                                     <tr>
                                         <td><input id="verbpresent-checkbox" type="checkbox" name="verbpresent" class="verb-has-variations"><label for="verbpresent-checkbox">Present tense</label></td>
-                                        <td rowspan="3" class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
+                                        <td rowspan="7" class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
                                     </tr>
                                     <tr><td><input id="verbpast-checkbox" type="checkbox" name="verbpast" class="verb-has-variations"><label for="verbpast-checkbox">Past tense</label></td></tr>
                                     <tr><td><input id="verbte-checkbox" type="checkbox" name="verbte"><label for="verbte-checkbox">て-form</label></td></tr>
                                     <tr><td><input id="verbvolitional-checkbox" type="checkbox" name="verbvolitional" class="verb-has-politeness"><label for="verbvolitional-checkbox">Volitional (~よう)</label></td></tr>
-                                    <tr><td><input id="verbba-checkbox" type="checkbox" name="verbba"><label for="verbba-checkbox">Conditionnel (~ば)</label></td></tr>
+                                    <tr><td><input id="verbba-checkbox" type="checkbox" name="verbba" class="verb-has-variations"><label for="verbba-checkbox">Conditionnel (~ば)</label></td></tr>
                                     <tr><td><input id="verbtara-checkbox" type="checkbox" name="verbtara" class="verb-has-variations"><label for="verbtara-checkbox">Conditionnel (~たら)</label></td></tr>
                                     <tr><td><input id="verbtai-checkbox" type="checkbox" name="verbtai" class="verb-has-variations"><label for="verbtai-checkbox">Désiratif (~たい)</label></td></tr>
                                 </table>
@@ -225,7 +226,7 @@
                             <div id="verb-variations-container">
                                 <div class="options-group">
                                     <hr>
-                                    <table style="width:100%">
+                                    <table>
                                         <tr>
                                             <td><input id="verbaffirmative-checkbox" type="checkbox" name="verbaffirmative"><label for="verbaffirmative-checkbox">Affirmative</label></td>
                                             <td rowspan="2" class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
@@ -235,7 +236,7 @@
                                 </div>
                                 <div id="verb-politeness-container" class="options-group">
                                     <hr>
-                                    <table style="width:100%">
+                                    <table>
                                         <tr>
                                             <td><input id="verbplain-checkbox" type="checkbox" name="verbplain"><label for="verbplain-checkbox">Plain</label></td>
                                             <td rowspan="2" class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
@@ -247,10 +248,10 @@
                         </div>
 
                         <div id="adjectives-h3-container">
-                            <input id="adjectives-checkbox" type="checkbox" name="adjective"><label for="adjectives-checkbox"><h3>Adjectives</h3></label>
+                            <input id="adjectives-checkbox" type="checkbox" name="adjective"><label for="adjectives-checkbox" class="options-h3-label">Adjectives</label>
                         </div>
                         <div class="options-indent" id="adjective-options-container">
-                            <table style="width:100%" class="options-group" id="adjective-type-group">
+                            <table class="options-group" id="adjective-type-group">
                                 <tr>
                                     <td><input id="adjectivei-checkbox" type="checkbox" name="adjectivei"><label for="adjectivei-checkbox">い-adjectives</label></td>
                                     <td rowspan="3" class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
@@ -259,20 +260,20 @@
                                 <tr><td><input id="adjectiveirregular-checkbox" type="checkbox" name="adjectiveirregular"><label for="adjectiveirregular-checkbox">Irregular adjectives</label></td></tr>
                             </table>
                             <hr>
-                            <table style="width:100%" class="options-group" id="adjective-conjugation-type-group">
+                            <table class="options-group" id="adjective-conjugation-type-group">
                                 <tr>
                                     <td><input id="adjectivepresent-checkbox" type="checkbox" name="adjectivepresent" class="adjective-has-variations"><label for="adjectivepresent-checkbox">Present tense</label></td>
-                                    <td rowspan="3" class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
+                                    <td rowspan="5" class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
                                 </tr>
                                 <tr><td><input id="adjectivepast-checkbox" type="checkbox" name="adjectivepast" class="adjective-has-variations"><label for="adjectivepast-checkbox">Past tense</label></td></tr>
                                 <tr><td><input id="adjectiveadverb-checkbox" type="checkbox" name="adjectiveadverb"><label for="adjectiveadverb-checkbox">Adverb</label></td></tr>
-                                <tr><td><input id="adjectiveba-checkbox" type="checkbox" name="adjectiveba"><label for="adjectiveba-checkbox">Conditionnel (~ば)</label></td></tr>
+                                <tr><td><input id="adjectiveba-checkbox" type="checkbox" name="adjectiveba" class="adjective-has-variations"><label for="adjectiveba-checkbox">Conditionnel (~ば)</label></td></tr>
                                 <tr><td><input id="adjectivetara-checkbox" type="checkbox" name="adjectivetara" class="adjective-has-variations"><label for="adjectivetara-checkbox">Conditionnel (~たら)</label></td></tr>
                             </table>
                             <div id="adjective-variations-container">
                                 <div class="options-group">
                                     <hr>
-                                    <table style="width:100%">
+                                    <table>
                                         <tr>
                                             <td><input id="adjectiveaffirmative-checkbox" type="checkbox" name="adjectiveaffirmative"><label for="adjectiveaffirmative-checkbox">Affirmative</label></td>
                                             <td rowspan="2" class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
@@ -282,7 +283,7 @@
                                 </div>
                                 <div class="options-group">
                                     <hr>
-                                    <table style="width:100%">
+                                    <table>
                                         <tr>
                                             <td><input id="adjectiveplain-checkbox" type="checkbox" name="adjectiveplain"><label for="adjectiveplain-checkbox">Plain</label></td>
                                             <td rowspan="2" class="settings-error-text display-none">*Must choose at least 1 option from this category</td>

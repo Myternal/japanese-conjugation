@@ -3,7 +3,7 @@
 class SoundEffects {
 	constructor() {
 		this.ctx = null;
-		this.muted = localStorage.getItem("dojoSoundMuted") === "true";
+		this.muted = typeof localStorage !== "undefined" && localStorage.getItem("dojoSoundMuted") === "true";
 	}
 
 	initContext() {
@@ -20,7 +20,9 @@ class SoundEffects {
 
 	toggleMute() {
 		this.muted = !this.muted;
-		localStorage.setItem("dojoSoundMuted", this.muted ? "true" : "false");
+		if (typeof localStorage !== "undefined") {
+			localStorage.setItem("dojoSoundMuted", this.muted ? "true" : "false");
+		}
 		return this.muted;
 	}
 

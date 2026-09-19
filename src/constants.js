@@ -59,3 +59,9 @@ export const orderedMaxScoreSettings = Object.freeze([
 	"adjectiveba",
 	"adjectivetara",
 ]);
+
+export class MaxScoreObject {
+	constructor(score = 0) {
+		this.score = score;
+	}
+}

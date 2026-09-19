@@ -187,5 +187,259 @@ test("syncManager payload export and apply", async () => {
 	assert.equal(merged[2].score, 3);  // added new remote
 });
 
+test("generateDokkaiChallenge handles minimal 1-word list and fallback distractors", async () => {
+	const { generateDokkaiChallenge } = await import("../src/engine/deconjugator.js");
+	const singleWordList = [
+		{ kanji: "<ruby>話<rt>はな</rt></ruby>す", type: "u", eng: "speak" }
+	];
+	const challenge = generateDokkaiChallenge(singleWordList);
+	assert.ok(challenge != null);
+	assert.equal(challenge.options.length, 4);
+	assert.ok(challenge.correctIndex >= 0 && challenge.correctIndex < 4);
+	assert.equal(challenge.options[challenge.correctIndex], challenge.correctLabel);
+});
+
+test("syncManager UTF-8 Base64 roundtrip with Japanese characters", async () => {
+	const { generateSyncUrl, checkUrlForSyncImport } = await import("../src/engine/syncManager.js");
+	globalThis.window = {
+		location: {
+			origin: "http://localhost:1234",
+			pathname: "/",
+			search: "",
+			hash: "",
+		},
+	};
+	globalThis.document = { title: "Dojo Réflexe" };
+	globalThis.history = {
+		replaceState(_state, _title, _url) {},
+	};
+
+	localStorage.setItem("dojoCustomVocab", JSON.stringify([{ kanji: "飲む", eng: "boire" }]));
+	const url = generateSyncUrl();
+	assert.ok(url.includes("#sync="));
+
+	const hashPart = url.substring(url.indexOf("#"));
+	globalThis.window.location.hash = hashPart;
+
+	const imported = checkUrlForSyncImport();
+	assert.ok(imported != null);
+	assert.equal(imported.dojoCustomVocab[0].kanji, "飲む");
+});
+
+test("toHiragana correctly converts multi-character ruby blocks", async () => {
+	const { toHiragana } = await import("../src/engine/conjugator.js");
+	assert.equal(toHiragana("<ruby>勉強<rt>べんきょう</rt></ruby>する"), "べんきょうする");
+	assert.equal(toHiragana("<ruby>食<rt>た</rt></ruby>べる"), "たべる");
+	assert.equal(toHiragana("<ruby>持<rt>も</rt></ruby>って<ruby>行<rt>い</rt></ruby>く"), "もっていく");
+});
+
+test("SessionManager pauseSprint and resumeSprint preserve remaining time", async () => {
+	const { SessionManager, GAME_MODES } = await import("../src/engine/gameModes.js");
+	let tickRecorded = 0;
+	const session = new SessionManager({
+		onTick: (secs) => { tickRecorded = secs; },
+	});
+	session.setMode(GAME_MODES.SPRINT, 60);
+	session.startSprint();
+	session.timeRemaining = 42;
+	session.pauseSprint();
+
+	assert.equal(session.timerInterval, null);
+	assert.equal(session.timeRemaining, 42);
+
+	session.resumeSprint();
+	assert.ok(session.timerInterval != null);
+	assert.equal(session.timeRemaining, 42);
+	assert.equal(tickRecorded, 42);
+	session.stopTimer();
+});
+
+test("parseCustomWordList handles Anki bracket syntax and auto-matches known words", async () => {
+	const { parseCustomWordList } = await import("../src/data/vocabData.js");
+
+	// 1. Anki bracket syntax
+	const bracketResult = parseCustomWordList("落[お]とす\tdrop something");
+	assert.equal(bracketResult.length, 1);
+	assert.equal(bracketResult[0].kanji, "<ruby>落<rt>お</rt></ruby>とす");
+	assert.equal(bracketResult[0].type, "u");
+	assert.equal(bracketResult[0].eng, "drop something");
+
+	// 2. Known dictionary word in plain text auto-matches full ruby tags and meaning
+	const knownResult = parseCustomWordList("食べる");
+	assert.equal(knownResult.length, 1);
+	assert.equal(knownResult[0].kanji, "<ruby>食<rt>た</rt></ruby>べる");
+	assert.equal(knownResult[0].type, "ru");
+	assert.equal(knownResult[0].eng, "eat");
+
+	// 3. Unknown verb heuristic deduction
+	const customResult = parseCustomWordList("泳ぎ回る\tswim around");
+	assert.equal(customResult.length, 1);
+	assert.equal(customResult[0].type, "u");
+	assert.equal(customResult[0].eng, "swim around");
+});
+
+test("getAllConjugations produces deduplicated validAnswers", () => {
+	// Word with no kanji
+	const kirei = { kanji: "きれい", type: "na", eng: "beautiful" };
+	const conjs = getAllConjugations(kirei);
+	assert.ok(conjs.length > 0);
+	for (const conj of conjs) {
+		const uniqueAnswers = Array.from(new Set(conj.validAnswers));
+		assert.equal(
+			conj.validAnswers.length,
+			uniqueAnswers.length,
+			`Found duplicate answers in conjugation ${conj.type} for ${kirei.kanji}: ${JSON.stringify(conj.validAnswers)}`
+		);
+	}
+
+	// Irregular verb する
+	const suru = { kanji: "する", type: "irv", eng: "do" };
+	const suruConjs = getAllConjugations(suru);
+	for (const conj of suruConjs) {
+		const unique = Array.from(new Set(conj.validAnswers));
+		assert.equal(conj.validAnswers.length, unique.length);
+	}
+});
+
+test("Adjective conditional ba and tara forms", () => {
+	const vf = conjugationFunctions[PARTS_OF_SPEECH.adjective];
+	// i-adjective
+	assert.equal(vf[CONJUGATION_TYPES.ba]("高い", "i", true, false), "高ければ");
+	assert.deepEqual(vf[CONJUGATION_TYPES.ba]("高い", "i", false, false), ["高くなければ", "高くなきゃ"]);
+	assert.equal(vf[CONJUGATION_TYPES.tara]("高い", "i", true, false), "高かったら");
+	assert.equal(vf[CONJUGATION_TYPES.tara]("高い", "i", false, false), "高くなかったら");
+
+	// na-adjective
+	assert.deepEqual(vf[CONJUGATION_TYPES.ba]("静か", "na", true, false), ["静かなら", "静かならば", "静かであれば"]);
+	assert.deepEqual(vf[CONJUGATION_TYPES.ba]("静か", "na", false, false), ["静かじゃなければ", "静かでなければ", "静かではなければ"]);
+
+	// na-adjective tara polite vs plain
+	assert.deepEqual(vf[CONJUGATION_TYPES.tara]("静か", "na", true, true), ["静かでしたら"]);
+	assert.deepEqual(vf[CONJUGATION_TYPES.tara]("静か", "na", true, false), ["静かだったら"]);
+	assert.deepEqual(vf[CONJUGATION_TYPES.tara]("静か", "na", false, true), [
+		"静かじゃありませんでしたら",
+		"静かではありませんでしたら",
+	]);
+	assert.deepEqual(vf[CONJUGATION_TYPES.tara]("静か", "na", false, false), [
+		"静かじゃなかったら",
+		"静かではなかったら",
+	]);
+});
+
+test("持っていく is accepted via altOkurigana in getAllConjugations", async () => {
+	const { wordData } = await import("../src/wordData.js");
+	const motteiku = wordData.verbs.find(
+		(v) => v.kanji.includes("持") && v.kanji.includes("行")
+	);
+	assert.ok(motteiku != null);
+	assert.ok(motteiku.altOkurigana?.includes("持っていく"));
+
+	const conjs = getAllConjugations(motteiku);
+	const pastPlain = conjs.find(
+		(c) => c.type === CONJUGATION_TYPES.past && c.affirmative && !c.polite
+	);
+	assert.ok(pastPlain.validAnswers.includes("持っていった"));
+	assert.ok(pastPlain.validAnswers.includes("持って行った"));
+});
+
+test("generateDokkaiChallenge avoids homograph distractors", async () => {
+	const { generateDokkaiChallenge } = await import("../src/engine/deconjugator.js");
+	const taberuList = [
+		{ kanji: "<ruby>食<rt>た</rt></ruby>べる", type: "ru", eng: "eat" },
+	];
+
+	// Run multiple times to verify no challenge has options sharing the prompt text
+	for (let i = 0; i < 20; i++) {
+		const challenge = generateDokkaiChallenge(taberuList);
+		assert.ok(challenge != null);
+		assert.equal(challenge.options.length, 4);
+		assert.ok(challenge.correctIndex >= 0 && challenge.correctIndex < 4);
+
+		// If prompt is 食べられる, neither passive nor potential should be in the other options
+		// Distractors must not include homographs
+		const otherOptions = challenge.options.filter((_, idx) => idx !== challenge.correctIndex);
+		assert.ok(!otherOptions.includes(challenge.correctLabel));
+	}
+});
+
+test("parseCustomWordList recognizes words entered in hiragana", async () => {
+	const { parseCustomWordList } = await import("../src/data/vocabData.js");
+	const res = parseCustomWordList("たべる\tto eat\nのむ");
+	assert.equal(res.length, 2);
+	assert.equal(res[0].kanji, "<ruby>食<rt>た</rt></ruby>べる");
+	assert.equal(res[0].type, "ru");
+	assert.equal(res[1].kanji, "<ruby>飲<rt>の</rt></ruby>む");
+	assert.equal(res[1].type, "u");
+
+	const resIi = parseCustomWordList("良い");
+	assert.equal(resIi[0].type, "ira");
+
+	// Na-adjective with trailing な
+	const resNa = parseCustomWordList("静かな, 便利な");
+	assert.equal(resNa[0].type, "na");
+	assert.equal(resNa[0].kanji, "<ruby>静<rt>しず</rt></ruby>か");
+	assert.equal(resNa[1].type, "na");
+	assert.equal(resNa[1].kanji, "便利");
+
+	// Compound verb ending with 行く/いく
+	const resIku = parseCustomWordList("連れて行く, つれていく");
+	assert.equal(resIku[0].type, "irv");
+	assert.equal(resIku[0].group, "iku");
+	assert.equal(resIku[1].type, "irv");
+	assert.equal(resIku[1].group, "iku");
+
+	// Known word preserves group & altOkurigana
+	const resMotteiku = parseCustomWordList("持って行く");
+	assert.equal(resMotteiku[0].group, "iku");
+	assert.deepEqual(resMotteiku[0].altOkurigana, ["持っていく"]);
+});
+
+test("parseCustomWordList supports Japanese punctuation 、 and ；", async () => {
+	const { parseCustomWordList } = await import("../src/data/vocabData.js");
+	const res = parseCustomWordList("食べる、飲む；行く");
+	assert.equal(res.length, 3);
+	assert.equal(res[0].kanji, "<ruby>食<rt>た</rt></ruby>べる");
+	assert.equal(res[1].kanji, "<ruby>飲<rt>の</rt></ruby>む");
+	assert.equal(res[2].kanji, "<ruby>行<rt>い</rt></ruby>く");
+});
+
+test("EXTENDED_JLPT_VOCAB.n5 contains na-adjectives and all verb types", async () => {
+	const { EXTENDED_JLPT_VOCAB, getVocabObjectForLevel } = await import("../src/data/vocabData.js");
+	const n5List = EXTENDED_JLPT_VOCAB.n5;
+
+	// Must contain na-adjectives
+	const naAdjs = n5List.filter((item) => item.type === "na");
+	assert.ok(naAdjs.length > 0, "N5 must contain at least one na-adjective");
+	assert.ok(naAdjs.some((a) => a.kanji.includes("静") || a.kanji.includes("好") || a.kanji === "きれい"));
+
+	// Must contain i-adjectives and irregular adjectives
+	const iAdjs = n5List.filter((item) => item.type === "i");
+	const iraAdjs = n5List.filter((item) => item.type === "ira");
+	assert.ok(iAdjs.length > 0, "N5 must contain i-adjectives");
+	assert.ok(iraAdjs.length > 0, "N5 must contain ira-adjectives (like いい)");
+
+	// Must contain u, ru, and irv verbs
+	const uVerbs = n5List.filter((item) => item.type === "u");
+	const ruVerbs = n5List.filter((item) => item.type === "ru");
+	const irvVerbs = n5List.filter((item) => item.type === "irv");
+	assert.ok(uVerbs.length > 0, "N5 must contain u-verbs");
+	assert.ok(uVerbs.some((v) => v.kanji.includes("飲")), "N5 must contain 飲む");
+	assert.ok(ruVerbs.length > 0, "N5 must contain ru-verbs");
+	assert.ok(irvVerbs.length > 0, "N5 must contain irv-verbs");
+
+	// Formatting as words object preserves both verbs and adjectives
+	const n5Obj = getVocabObjectForLevel("n5");
+	assert.ok(n5Obj.verbs.length > 0);
+	assert.ok(n5Obj.adjectives.length > 0);
+	assert.ok(n5Obj.adjectives.some((a) => a.type === "na"));
+});
+
+test("escapeHtml sanitizes untrusted input", async () => {
+	const { escapeHtml } = await import("../src/utils.js");
+	assert.equal(escapeHtml("<script>alert('xss')</script>"), "&lt;script&gt;alert(&#039;xss&#039;)&lt;/script&gt;");
+	assert.equal(escapeHtml('foo & "bar"'), "foo &amp; &quot;bar&quot;");
+	assert.equal(escapeHtml(""), "");
+	assert.equal(escapeHtml(null), "");
+});
 
 

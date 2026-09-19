@@ -113,7 +113,9 @@ export function toKanjiPlusHiragana(wordHtml) {
 }
 
 export function toHiragana(wordHtml) {
-	return wordHtml.replace(/<ruby>|<\/ruby>|.<rt>|<\/rt>/g, "");
+	return wordHtml
+		.replace(/<ruby>[^<]*<rt>(.*?)<\/rt><\/ruby>/g, "$1")
+		.replace(/<ruby>|<\/ruby>|.<rt>|<\/rt>/g, "");
 }
 
 export function getPartOfSpeech(wordJSON) {
@@ -770,15 +772,19 @@ export const conjugationFunctions = {
 				}
 			} else if (type === "na") {
 				if (affirmative) {
-					return [
-						baseAdjectiveText + "だったら",
-						baseAdjectiveText + "でしたら",
-					];
+					return polite
+						? [baseAdjectiveText + "でしたら"]
+						: [baseAdjectiveText + "だったら"];
 				} else {
-					return [
-						baseAdjectiveText + "じゃなかったら",
-						baseAdjectiveText + "ではなかったら",
-					];
+					return polite
+						? [
+								baseAdjectiveText + "じゃありませんでしたら",
+								baseAdjectiveText + "ではありませんでしたら",
+						  ]
+						: [
+								baseAdjectiveText + "じゃなかったら",
+								baseAdjectiveText + "ではなかったら",
+						  ];
 				}
 			}
 		},
@@ -800,15 +806,20 @@ export function getConjugation(wordJSON, partOfSpeech, conjugationType, validBas
 
 	if (!conjugationFunction) return null;
 
-	validBaseWordSpellings?.forEach((baseWord) => {
+	const uniqueBaseWords = Array.from(new Set(validBaseWordSpellings || []));
+
+	uniqueBaseWords.forEach((baseWord) => {
 		const res = conjugationFunction(baseWord, wordJSON.type, affirmative, polite);
 		if (res != null) {
 			validConjugatedAnswers.push(res);
 		}
 	});
 
+	const uniqueAnswers = Array.from(new Set(validConjugatedAnswers.flat()));
+	if (uniqueAnswers.length === 0) return null;
+
 	return new Conjugation(
-		validConjugatedAnswers.flat(),
+		uniqueAnswers,
 		conjugationType,
 		affirmative,
 		polite
@@ -853,13 +864,13 @@ export function getAllConjugations(wordJSON) {
 	const allConjugations = [];
 	const partOfSpeech = getPartOfSpeech(wordJSON);
 
-	let validBaseWordSpellings = [
-		toHiragana(wordJSON.kanji),
-		toKanjiPlusHiragana(wordJSON.kanji),
-	];
-	if (wordJSON.altOkurigana?.length) {
-		validBaseWordSpellings = validBaseWordSpellings.concat(wordJSON.altOkurigana);
-	}
+	let validBaseWordSpellings = Array.from(
+		new Set([
+			toHiragana(wordJSON.kanji),
+			toKanjiPlusHiragana(wordJSON.kanji),
+			...(wordJSON.altOkurigana || []),
+		])
+	);
 
 	const typesWithStandardVariations = [
 		CONJUGATION_TYPES.present,
@@ -876,7 +887,9 @@ export function getAllConjugations(wordJSON) {
 		typesWithStandardVariations.push(CONJUGATION_TYPES.tai);
 		typesWithStandardVariations.push(CONJUGATION_TYPES.tara);
 	} else if (partOfSpeech === PARTS_OF_SPEECH.adjective) {
-		typesWithStandardVariations.push(CONJUGATION_TYPES.tara);
+		if (wordJSON.type === "na") {
+			typesWithStandardVariations.push(CONJUGATION_TYPES.tara);
+		}
 	}
 
 	typesWithStandardVariations.forEach((type) => {
@@ -905,6 +918,12 @@ export function getAllConjugations(wordJSON) {
 		[true, false].forEach((aff) => {
 			allConjugations.push(getConjugation(wordJSON, partOfSpeech, CONJUGATION_TYPES.ba, validBaseWordSpellings, aff, false));
 		});
+		// tara for i/ira adjectives (affirmative + negative plain)
+		if (wordJSON.type !== "na") {
+			[true, false].forEach((aff) => {
+				allConjugations.push(getConjugation(wordJSON, partOfSpeech, CONJUGATION_TYPES.tara, validBaseWordSpellings, aff, false));
+			});
+		}
 	}
 
 	return allConjugations.flat().filter(Boolean);

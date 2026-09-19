@@ -74,7 +74,7 @@ export const wordData = {
         {"kanji":"<ruby>分<rt>わ<\/rt><\/ruby>かる","type":"u","eng":"understand"},
         {"kanji":"<ruby>勉<rt>べん<\/rt><\/ruby><ruby>強<rt>きょう<\/rt><\/ruby>する","type":"irv","eng":"study", "group": "suru"},
         {"kanji":"<ruby>受<rt>う<\/rt><\/ruby>け<ruby>持<rt>も<\/rt><\/ruby>つ","type":"u","eng":"take charge of"},
-        {"kanji":"<ruby>持<rt>も<\/rt><\/ruby>って<ruby>行<rt>い<\/rt><\/ruby>く","type":"irv","eng":"take, carry away", "group": "iku"},
+        {"kanji":"<ruby>持<rt>も<\/rt><\/ruby>って<ruby>行<rt>い<\/rt><\/ruby>く","type":"irv","eng":"take, carry away", "group": "iku", "altOkurigana": ["持っていく"]},
         {"kanji":"<ruby>食<rt>た<\/rt><\/ruby>べ<ruby>歩<rt>ある<\/rt><\/ruby>く","type":"u","eng":"try food at various restaurants"}
     ],
     "adjectives": [
@@ -93,7 +93,7 @@ export const wordData = {
         {"kanji":"<ruby>高<rt>たか<\/rt><\/ruby>い","type":"i","eng":"high, expensive"},
         {"kanji":"<ruby>楽<rt>たの<\/rt><\/ruby>しい","type":"i","eng":"fun, pleasant"},
         {"kanji":"<ruby>小<rt>ちい<\/rt><\/ruby>さい","type":"i","eng":"small"},
-        {"kanji":"<ruby>詰<rt>つま<\/rt><\/ruby>らない","type":"i","eng":"uninteresting, boring","altOkurigana":["詰まらない"]},
+        {"kanji":"<ruby>詰<rt>つま<\/rt><\/ruby>らない","type":"i","eng":"uninteresting, boring"},
         {"kanji":"<ruby>速<rt>はや<\/rt><\/ruby>い","type":"i","eng":"fast, quick"},
         {"kanji":"<ruby>古<rt>ふる<\/rt><\/ruby>い","type":"i","eng":"old (thing)"},
         {"kanji":"<ruby>欲<rt>ほ<\/rt><\/ruby>しい","type":"i","eng":"wanted, desired"},

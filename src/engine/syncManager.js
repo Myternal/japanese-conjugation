@@ -2,13 +2,21 @@
 
 const GIST_FILENAME = "dojo-progress.json";
 
+function safeJsonParse(str, fallback) {
+	try {
+		return str ? JSON.parse(str) : fallback;
+	} catch (e) {
+		return fallback;
+	}
+}
+
 export function getLocalProgressPayload() {
 	return {
 		version: 2,
 		timestamp: Date.now(),
-		settings: JSON.parse(localStorage.getItem("settings") || "{}"),
-		maxScoreObjectsV2: JSON.parse(localStorage.getItem("maxScoreObjectsV2") || "{}"),
-		dojoCustomVocab: JSON.parse(localStorage.getItem("dojoCustomVocab") || "[]"),
+		settings: safeJsonParse(localStorage.getItem("settings"), {}),
+		maxScoreObjectsV2: safeJsonParse(localStorage.getItem("maxScoreObjectsV2"), {}),
+		dojoCustomVocab: safeJsonParse(localStorage.getItem("dojoCustomVocab"), []),
 		dojoSelectedLevel: localStorage.getItem("dojoSelectedLevel") || "all",
 		dojoSoundMuted: localStorage.getItem("dojoSoundMuted") === "true",
 	};
@@ -50,10 +58,35 @@ export function applyProgressPayload(payload) {
 	}
 }
 
+function utf8ToBase64(str) {
+	if (typeof TextEncoder !== "undefined") {
+		const bytes = new TextEncoder().encode(str);
+		let binary = "";
+		const len = bytes.byteLength;
+		for (let i = 0; i < len; i++) {
+			binary += String.fromCharCode(bytes[i]);
+		}
+		return btoa(binary);
+	}
+	return btoa(unescape(encodeURIComponent(str)));
+}
+
+function base64ToUtf8(b64) {
+	const binary = atob(b64);
+	if (typeof TextDecoder !== "undefined") {
+		const bytes = new Uint8Array(binary.length);
+		for (let i = 0; i < binary.length; i++) {
+			bytes[i] = binary.charCodeAt(i);
+		}
+		return new TextDecoder().decode(bytes);
+	}
+	return decodeURIComponent(escape(binary));
+}
+
 export function generateSyncUrl() {
 	const payload = getLocalProgressPayload();
 	const jsonStr = JSON.stringify(payload);
-	const encoded = encodeURIComponent(btoa(unescape(encodeURIComponent(jsonStr))));
+	const encoded = encodeURIComponent(utf8ToBase64(jsonStr));
 	const baseUrl = window.location.origin + window.location.pathname;
 	return `${baseUrl}#sync=${encoded}`;
 }
@@ -65,7 +98,7 @@ export function checkUrlForSyncImport() {
 
 	try {
 		const rawEncoded = hash.substring(6);
-		const jsonStr = decodeURIComponent(escape(atob(decodeURIComponent(rawEncoded))));
+		const jsonStr = base64ToUtf8(decodeURIComponent(rawEncoded));
 		const payload = JSON.parse(jsonStr);
 
 		if (payload && payload.version) {
@@ -170,8 +203,8 @@ export async function autoConnectGitHub(token) {
 	if (!token || !token.trim()) throw new Error("Token GitHub requis");
 	const cleanToken = token.trim();
 
-	// Check if user has an existing dojo gist
-	const res = await fetch("https://api.github.com/gists", {
+	// Check if user has an existing dojo gist (query up to 100 gists)
+	const res = await fetch("https://api.github.com/gists?per_page=100", {
 		headers: {
 			Authorization: `token ${cleanToken}`,
 			Accept: "application/vnd.github.v3+json",
@@ -219,26 +252,39 @@ export async function silentPullOnStartup() {
 
 // Debounced auto-save to cloud
 let autoSyncTimer = null;
+let syncStatusListener = null;
+
+export function setSyncStatusListener(listener) {
+	syncStatusListener = listener;
+}
+
 export function triggerAutoSync() {
-	const token = localStorage.getItem("dojoGistToken");
-	const gistId = localStorage.getItem("dojoGistId");
+	const token = typeof localStorage !== "undefined" ? localStorage.getItem("dojoGistToken") : null;
+	const gistId = typeof localStorage !== "undefined" ? localStorage.getItem("dojoGistId") : null;
 	if (!token || !gistId) return;
 
 	if (autoSyncTimer) clearTimeout(autoSyncTimer);
 	autoSyncTimer = setTimeout(async () => {
 		try {
 			await pushToGitHubGist(token, gistId);
-			const badge = document.getElementById("cloud-status-indicator");
-			if (badge) {
-				badge.textContent = "Synchro OK";
-				badge.classList.add("speed-fast");
-				setTimeout(() => {
-					badge.textContent = "Cloud";
-					badge.classList.remove("speed-fast");
-				}, 2500);
+			if (syncStatusListener) {
+				syncStatusListener("success");
+			} else if (typeof document !== "undefined") {
+				const badge = document.getElementById("cloud-status-indicator");
+				if (badge) {
+					badge.textContent = "Synchro OK";
+					badge.classList.add("speed-fast");
+					setTimeout(() => {
+						badge.textContent = "Cloud";
+						badge.classList.remove("speed-fast");
+					}, 2500);
+				}
 			}
 		} catch (e) {
 			console.warn("Auto-sync to Gist failed:", e);
+			if (syncStatusListener) {
+				syncStatusListener("error", e);
+			}
 		}
-	}, 600);
+	}, 2500);
 }

@@ -2,8 +2,8 @@ import {
 	CONJUGATION_TYPES,
 	orderedMaxScoreSettings,
 	PARTS_OF_SPEECH,
+	MaxScoreObject,
 } from "./constants.js";
-import { MaxScoreObject } from "./main.js";
 import { toggleDisplayNone } from "./utils.js";
 
 // Enum for radio options that conditionally show/hide UI elements
@@ -12,20 +12,35 @@ export const CONDITIONAL_UI_TIMINGS = Object.freeze({
 	onlyAfterAnswering: "after",
 });
 
-const nonConjugationSettings = getNonConjugationSettingsSet();
+const DEFAULT_NON_CONJUGATION_SETTINGS = Object.freeze([
+	"furigana",
+	"furiganaTiming",
+	"translation",
+	"translationTiming",
+	"streak",
+]);
+
+let nonConjugationSettings = null;
 
 function getNonConjugationSettingsSet() {
-	const settings = new Set();
-	document
-		.querySelectorAll("#non-conjugation-settings input")
-		.forEach((input) => settings.add(input.getAttribute("name")));
-	return settings;
+	if (!nonConjugationSettings) {
+		nonConjugationSettings = new Set(DEFAULT_NON_CONJUGATION_SETTINGS);
+		if (typeof document !== "undefined") {
+			document
+				.querySelectorAll("#non-conjugation-settings input")
+				.forEach((input) => {
+					const name = input.getAttribute("name");
+					if (name) nonConjugationSettings.add(name);
+				});
+		}
+	}
+	return nonConjugationSettings;
 }
 
 export function removeNonConjugationSettings(settings) {
 	let prunedSettings = JSON.parse(JSON.stringify(settings));
 
-	nonConjugationSettings.forEach((s) => {
+	getNonConjugationSettingsSet().forEach((s) => {
 		delete prunedSettings[s];
 	});
 	return prunedSettings;
@@ -278,7 +293,7 @@ function verbPresAffPlainCheckError() {
 		);
 		// These inputs could be hidden because the parent "Verb" option is unchecked, so check to enable back button
 		checkToEnableBackButton();
-	} else {
+	} else if (document.querySelector('input[name="verb"]').checked) {
 		optionsGroupCheckError(optionsGroup);
 	}
 }
@@ -381,7 +396,6 @@ function showHideTranslationSubOptions() {
 }
 
 export function applyNonConjugationSettings(settings) {
-	showEmojis(settings.emoji);
 	showStreak(settings.streak);
 	// showTranslation and showFurigana are dependent on the state, so we can't set them here
 }
@@ -400,8 +414,9 @@ export function applyAllSettingsFilterWords(settings, completeWordList) {
 		);
 		// Filter out the verbs we don't want
 		for (let i = 0; i < verbOptions.length; i++) {
-			if (settings[verbOptions[i]] === false) {
-				verbs = verbs.filter(questionRemoveFilters.verbs[verbOptions[i]]);
+			const filterFn = questionRemoveFilters.verbs[verbOptions[i]];
+			if (settings[verbOptions[i]] === false && filterFn) {
+				verbs = verbs.filter(filterFn);
 			}
 		}
 	}
@@ -417,10 +432,9 @@ export function applyAllSettingsFilterWords(settings, completeWordList) {
 		);
 		// Filter out the adjectives we don't want
 		for (let i = 0; i < adjectiveOptions.length; i++) {
-			if (settings[adjectiveOptions[i]] === false) {
-				adjectives = adjectives.filter(
-					questionRemoveFilters.adjectives[adjectiveOptions[i]]
-				);
+			const filterFn = questionRemoveFilters.adjectives[adjectiveOptions[i]];
+			if (settings[adjectiveOptions[i]] === false && filterFn) {
+				adjectives = adjectives.filter(filterFn);
 			}
 		}
 	}
@@ -478,6 +492,7 @@ const questionRemoveFilters = {
 		},
 
 		verbplain: function (word) {
+			if (word.conjugation.type === CONJUGATION_TYPES.ba) return true;
 			return word.conjugation.polite !== false;
 		},
 		verbpolite: function (word) {
@@ -519,6 +534,7 @@ const questionRemoveFilters = {
 		},
 
 		adjectiveplain: function (word) {
+			if (word.conjugation.type === CONJUGATION_TYPES.ba) return true;
 			return word.conjugation.polite !== false;
 		},
 		adjectivepolite: function (word) {
@@ -740,6 +756,7 @@ export function getVisibleConjugationSettings(allSettings) {
 
 	// Helper to see if any DOM elements with the given class are turned on in visibleSettings
 	function isSomeSettingOn(inputClass) {
+		if (typeof document === "undefined") return true;
 		const settingsThatTriggerVariations = Array.from(
 			document.getElementsByClassName(inputClass)
 		).map((el) => el.getAttribute("name"));
@@ -750,7 +767,7 @@ export function getVisibleConjugationSettings(allSettings) {
 	}
 
 	if (!visibleSettings.verb) {
-		// Remove all verb settings (expect the base ["verb": false] setting)
+		// Remove all verb settings (except the base ["verb": false] setting)
 		const verbRegex = /^verb.+/;
 		for (const settingName of Object.keys(visibleSettings)) {
 			if (verbRegex.test(settingName)) {

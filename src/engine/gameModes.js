@@ -1,3 +1,5 @@
+import { sfx } from "./soundEffects.js";
+
 export const GAME_MODES = Object.freeze({
 	CLASSIC: "classic",
 	SPRINT: "sprint",
@@ -59,6 +61,29 @@ export class SessionManager {
 
 			if (this.timeRemaining <= 0) {
 				this.stopTimer();
+				sfx.playSprintEnd();
+				this.endSession();
+			}
+		}, 1000);
+	}
+
+	pauseSprint() {
+		this.stopTimer();
+	}
+
+	resumeSprint() {
+		if (this.mode !== GAME_MODES.SPRINT) return;
+		if (this.timeRemaining <= 0) return;
+		this.stopTimer();
+		this.onTick(this.timeRemaining);
+
+		this.timerInterval = setInterval(() => {
+			this.timeRemaining--;
+			this.onTick(this.timeRemaining);
+
+			if (this.timeRemaining <= 0) {
+				this.stopTimer();
+				sfx.playSprintEnd();
 				this.endSession();
 			}
 		}, 1000);

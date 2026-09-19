@@ -46,8 +46,7 @@ input[type="radio"] + label {
 }
 
 #current-streak {
-	left: 0.23rem;
-	float: left;
+	text-align: left;
 }
 
 #current-streak-text,
@@ -70,8 +69,7 @@ input[type="radio"] + label {
 }
 
 #max-streak {
-	right: 0.23rem;
-	float: right;
+	text-align: right;
 }
 
 #toppest-container {
@@ -88,14 +86,10 @@ input[type="radio"] + label {
 	background: rgb(44, 43, 41);
 }
 
-#streak-container:after,
-#settings-child-container:after {
-	content: "";
-	display: table;
-	clear: both;
-}
-
 #streak-container {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
 	padding: 0.4rem;
 	padding-top: 0.3rem;
 }
@@ -240,12 +234,8 @@ span.rt {
 	border-color: red transparent transparent transparent;
 }
 
-#main-text-input,
-#settings-child-container {
-	width: 88%;
-}
-
 #main-text-input {
+	width: 88%;
 	border-radius: 5rem;
 	font-size: 1rem;
 	border: 0.068rem;
@@ -265,21 +255,29 @@ span.rt {
 }
 
 #settings-container {
-	text-align: center;
-	margin: 0;
+	width: 88%;
+	margin: 0 auto;
 }
 
-#settings-child-container {
-	display: inline-block;
-}
-
-#settings-table {
-	table-layout: fixed;
+#bottom-action-bar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
 	width: 100%;
 }
 
+.bottom-bar-spacer {
+	flex: 1;
+}
+
+.bottom-bar-action {
+	flex: 1;
+	display: flex;
+	justify-content: flex-end;
+	gap: 0.4rem;
+}
+
 button {
-	float: right;
 	background: rgb(63, 63, 63);
 	border: none;
 	box-shadow:
@@ -296,7 +294,6 @@ button {
 	padding-right: 0.27rem;
 	padding-left: 0.55rem;
 	font-size: 0.73rem;
-	margin-right: -0.27rem;
 }
 
 #back-button {
@@ -314,6 +311,8 @@ button:disabled {
 }
 
 #press-any-key-text {
+	flex: 2;
+	text-align: center;
 	margin: 0;
 	font-size: 0.64rem;
 	color: var(--whiteTextColor);
@@ -336,6 +335,10 @@ h2 {
 	font-size: 0.8rem;
 	text-align: left;
 	color: var(--whiteTextColor);
+}
+
+#options-form table {
+	width: 100%;
 }
 
 #options-form .option-row {
@@ -379,15 +382,19 @@ h2 {
 }
 
 #back-button-container {
-	display: inline-block;
+	display: flex;
+	justify-content: flex-end;
 	width: 100%;
 	margin-top: 0.45rem;
 }
 
-#options-form h3 {
+#options-form h3,
+.options-h3-label {
 	display: inline-block;
 	margin-top: 0;
 	margin-bottom: 0;
+	font-size: 1.17em;
+	font-weight: bold;
 }
 
 .transparent-furigana .rt,
@@ -1010,8 +1017,68 @@ On larger screens, we allow verb-type and status-container to always take up scr
 	align-items: center;
 }
 
-#gist-status-msg {
+.sync-actions-mt {
+	margin-top: 0.5rem;
+}
+
+#gist-status-msg,
+.gist-status-text {
 	font-weight: 600;
+	font-size: 0.75rem;
+	margin-top: 0.4rem;
+}
+
+.qr-code-box {
+	text-align: center;
+	margin: 0.5rem 0;
+}
+
+.sync-qr-img {
+	display: none;
+	max-width: 160px;
+	border-radius: 8px;
+	border: 4px solid #fff;
+	margin: auto;
+}
+
+.sync-divider {
+	border: 0;
+	border-top: 1px solid #444;
+	margin: 0.8rem 0;
+}
+
+.cloud-status-card {
+	margin: 0.5rem 0;
+	padding: 0.5rem;
+	background: #1b3320;
+	border: 1px solid #2e7d32;
+	border-radius: 6px;
+}
+
+.cloud-status-badge {
+	color: #00e676;
+	font-weight: bold;
+	font-size: 0.8rem;
+}
+
+.cloud-status-desc {
+	font-size: 0.72rem;
+	color: #ccc;
+	margin: 0.2rem 0;
+}
+
+.action-btn-sm {
+	margin-top: 0.4rem;
+	padding: 0.2rem 0.5rem;
+	font-size: 0.75rem;
+}
+
+.token-helper-link {
+	color: #64b5f6;
+	font-size: 0.75rem;
+	text-decoration: underline;
+	display: inline-block;
+	margin-bottom: 0.3rem;
 }
 
 

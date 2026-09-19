@@ -16,8 +16,14 @@ import {
 	convertMaxScoreObjectsToV2,
 } from "./settingManagement.js";
 import { wordData } from "./wordData.js";
-import { CONJUGATION_TYPES, PARTS_OF_SPEECH } from "./constants.js";
-import { toggleDisplayNone, toggleBackgroundNone } from "./utils.js";
+import { CONJUGATION_TYPES, PARTS_OF_SPEECH, MaxScoreObject } from "./constants.js";
+import {
+	createWordList,
+	pickRandomWord,
+	equalizeProbabilities,
+	updateProbabilities,
+} from "./engine/wordSelector.js";
+import { toggleDisplayNone, toggleBackgroundNone, escapeHtml } from "./utils.js";
 import {
 	getAllConjugations,
 	toKanjiPlusHiragana,
@@ -44,10 +50,10 @@ import {
 	triggerAutoSync,
 } from "./engine/syncManager.js";
 
-const isTouch = "ontouchstart" in window || navigator.msMaxTouchPoints > 0;
+const isTouch = typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
 document.getElementById("press-any-key-text").textContent = isTouch
-	? "Tap to continue"
-	: "Press Enter/Return to continue";
+	? "Touche l'écran pour continuer"
+	: "Appuie sur Entrée pour continuer";
 
 const SCREENS = Object.freeze({
 	question: 0,
@@ -127,6 +133,16 @@ function changeVerbBoxFontColor(color) {
 
 function updateCurrentWord(word) {
 	toggleBackgroundNone(document.getElementById("verb-box"), true);
+	if (!word || !word.wordJSON) {
+		document.getElementById("verb-text").innerHTML = "Aucun mot";
+		document.getElementById("translation").textContent = "Active plus d'options dans les paramètres.";
+		document.getElementById("verb-type").textContent = "\u00A0";
+		document.getElementById("conjugation-inquery-text").innerHTML = "";
+		const mainInput = document.getElementById("main-text-input");
+		if (mainInput) mainInput.disabled = true;
+		return;
+	}
+
 	const verbHtml = word.wordJSON.kanji
 		.replaceAll("<rt>", '<span class="rt">')
 		.replaceAll("</rt>", "</span>");
@@ -138,146 +154,15 @@ function updateCurrentWord(word) {
 }
 
 function loadNewWord(wordList) {
+	if (!wordList || wordList.length === 0) {
+		updateCurrentWord(null);
+		changeVerbBoxFontColor("rgb(232, 232, 232)");
+		return null;
+	}
 	const word = pickRandomWord(wordList);
 	updateCurrentWord(word);
 	changeVerbBoxFontColor("rgb(232, 232, 232)");
 	return word;
-}
-
-// Probability & Words Management
-export class Word {
-	constructor(wordJSON, conjugation) {
-		this.wordJSON = wordJSON;
-		this.conjugation = conjugation;
-		this.probability = 0;
-		this.wasRecentlyIncorrect = false;
-	}
-}
-
-class WordRecentlySeen {
-	constructor(word, wasCorrect) {
-		this.word = word;
-		this.wasCorrect = wasCorrect;
-	}
-}
-
-function findMinProb(currentWords) {
-	let min = 2;
-	for (let i = 0; i < currentWords.length; i++) {
-		min = currentWords[i].probability < min && currentWords[i].probability !== 0
-			? currentWords[i].probability
-			: min;
-	}
-	return min;
-}
-
-function normalizeProbabilities(currentWords) {
-	let totalProbability = 0;
-	for (let i = 0; i < currentWords.length; i++) {
-		totalProbability += currentWords[i].probability;
-	}
-	if (totalProbability > 0) {
-		for (let i = 0; i < currentWords.length; i++) {
-			currentWords[i].probability /= totalProbability;
-		}
-	}
-}
-
-function setAllProbabilitiesToValue(currentWords, value) {
-	for (let i = 0; i < currentWords.length; i++) {
-		currentWords[i].probability = value;
-	}
-}
-
-function equalizeProbabilities(currentWords) {
-	setAllProbabilitiesToValue(currentWords, 1);
-	normalizeProbabilities(currentWords);
-}
-
-function updateProbabilites(currentWords, wordsRecentlySeenQueue, currentWord, currentWordWasCorrect) {
-	const roundsToWait = 2;
-
-	if (currentWords.length < roundsToWait + 1) {
-		setAllProbabilitiesToValue(currentWords, 1);
-		currentWord.probability = 0;
-		normalizeProbabilities(currentWords);
-		return;
-	}
-
-	if (currentWord.wordJSON.group) {
-		const currentConjugation = currentWord.conjugation;
-		const group = currentWord.wordJSON.group;
-
-		currentWords
-			.filter((word) => {
-				const conjugation = word.conjugation;
-				return (
-					word.wordJSON.group === group &&
-					word !== currentWord &&
-					conjugation.type === currentConjugation.type &&
-					conjugation.affirmative === currentConjugation.affirmative &&
-					conjugation.polite === currentConjugation.polite
-				);
-			})
-			.forEach((word) => {
-				word.probability /= 3;
-			});
-	}
-
-	if (wordsRecentlySeenQueue.length >= roundsToWait) {
-		const dequeuedWord = wordsRecentlySeenQueue.shift();
-		const currentMinProb = findMinProb(currentWords);
-		const correctProbModifier = 0.5;
-		const incorrectProbModifier = 0.85;
-
-		let newProbability;
-		if (dequeuedWord.wasCorrect && !dequeuedWord.word.wasRecentlyIncorrect) {
-			newProbability = currentMinProb * correctProbModifier;
-		} else if (dequeuedWord.wasCorrect && dequeuedWord.word.wasRecentlyIncorrect) {
-			newProbability = currentMinProb * incorrectProbModifier;
-			dequeuedWord.word.wasRecentlyIncorrect = false;
-		} else if (!dequeuedWord.wasCorrect) {
-			newProbability = 10;
-		}
-		dequeuedWord.word.probability = newProbability;
-	}
-
-	if (!currentWordWasCorrect) {
-		currentWord.wasRecentlyIncorrect = true;
-	}
-
-	wordsRecentlySeenQueue.push(new WordRecentlySeen(currentWord, currentWordWasCorrect));
-	currentWord.probability = 0;
-	normalizeProbabilities(currentWords);
-}
-
-function createWordList(JSONWords) {
-	const wordList = {};
-	for (const [key, value] of Object.entries(JSONWords)) {
-		wordList[key] = [];
-		for (let i = 0; i < value.length; i++) {
-			const conjugations = getAllConjugations(value[i]);
-			for (let j = 0; j < conjugations.length; j++) {
-				wordList[key].push(new Word(value[i], conjugations[j]));
-			}
-		}
-	}
-	return wordList;
-}
-
-function pickRandomWord(wordList) {
-	let random = Math.random();
-	try {
-		for (let i = 0; i < wordList.length; i++) {
-			if (random < wordList[i].probability) {
-				return wordList[i];
-			}
-			random -= wordList[i].probability;
-		}
-		return wordList[0];
-	} catch (err) {
-		return wordList[0];
-	}
 }
 
 function addToScore(amount = 1, maxScoreObjects, maxScoreIndex) {
@@ -285,21 +170,28 @@ function addToScore(amount = 1, maxScoreObjects, maxScoreIndex) {
 	const max = document.getElementById("max-streak-text");
 	const current = document.getElementById("current-streak-text");
 
-	if (parseInt(max.textContent || "0") <= parseInt(current.textContent || "0")) {
-		const newAmount = parseInt(max.textContent || "0") + amount;
+	const currentVal = parseInt(current?.textContent?.trim() || "0", 10) || 0;
+	const maxVal = parseInt(max?.textContent?.trim() || "0", 10) || 0;
+
+	if (maxVal <= currentVal) {
+		const newAmount = maxVal + amount;
 		max.textContent = newAmount;
 		if (!document.getElementById("max-streak").classList.contains("display-none")) {
+			max.classList.remove("grow-animation");
+			void max.offsetWidth;
 			max.classList.add("grow-animation");
 		}
 
-		if (maxScoreObjects[maxScoreIndex]) {
+		if (maxScoreObjects && maxScoreObjects[maxScoreIndex]) {
 			maxScoreObjects[maxScoreIndex].score = newAmount;
 			localStorage.setItem("maxScoreObjectsV2", JSON.stringify(maxScoreObjects));
 		}
 	}
 
-	current.textContent = parseInt(current.textContent || "0") + amount;
+	current.textContent = currentVal + amount;
 	if (!document.getElementById("current-streak").classList.contains("display-none")) {
+		current.classList.remove("grow-animation");
+		void current.offsetWidth;
 		current.classList.add("grow-animation");
 	}
 }
@@ -325,9 +217,9 @@ function updateStatusBoxes(word, entryText) {
 		const subConjugationForm = getSubConjugationForm(word, entryText);
 		document.getElementById("status-text").innerHTML = `Correct${
 			subConjugationForm != null
-				? '<span class="sub-conjugation-indicator">(' + subConjugationForm + ")</span>"
+				? '<span class="sub-conjugation-indicator">(' + escapeHtml(subConjugationForm) + ")</span>"
 				: ""
-		}<br>${entryText} ○`;
+		}<br>${escapeHtml(entryText)} ○`;
 	} else {
 		document.getElementById("verb-box").style.background = typeToWordBoxColor(word.wordJSON.type);
 		toggleBackgroundNone(document.getElementById("verb-box"), false);
@@ -336,9 +228,9 @@ function updateStatusBoxes(word, entryText) {
 
 		statusBox.style.background = "rgb(218, 5, 5)";
 		document.getElementById("status-text").innerHTML =
-			(entryText === "" ? "_" : entryText) +
+			(entryText === "" ? "_" : escapeHtml(entryText)) +
 			" ×<br>" +
-			word.conjugation.validAnswers[0] +
+			escapeHtml(word.conjugation.validAnswers[0]) +
 			" ○";
 	}
 }
@@ -366,31 +258,23 @@ function getSubConjugationForm(word, validAnswer) {
 	return null;
 }
 
-export class MaxScoreObject {
-	constructor(score) {
-		this.score = score;
-	}
-}
-
 // Main ConjugationApp Controller
 class ConjugationApp {
 	constructor(words) {
 		const mainInput = document.getElementById("main-text-input");
 		bind(mainInput);
 
+		this.isDokkaiProcessing = false;
+
 		// Initialize Custom Vocab & Level
 		this.customWords = [];
-		const storedCustom = localStorage.getItem("dojoCustomVocab");
-		if (storedCustom) {
-			try {
-				this.customWords = JSON.parse(storedCustom);
-			} catch (e) {}
-		}
-		this.selectedLevel = localStorage.getItem("dojoSelectedLevel") || "all";
+		this.selectedLevel = "all";
+		this.refreshStateFromStorage();
 
 		// Check for instant URL sync import
 		const importedSync = checkUrlForSyncImport();
 		if (importedSync) {
+			this.refreshStateFromStorage();
 			setTimeout(() => {
 				alert("Progression et réglages importés avec succès.");
 			}, 300);
@@ -417,7 +301,7 @@ class ConjugationApp {
 			},
 		});
 
-		this.initState(words);
+		this.initState();
 		this.setupEventListeners();
 		this.setupDojoControls();
 
@@ -425,7 +309,11 @@ class ConjugationApp {
 		silentPullOnStartup()
 			.then((remotePayload) => {
 				if (remotePayload) {
-					this.initState(words);
+					this.refreshStateFromStorage();
+					// Only re-init state if user is still on initial idle screen
+					if (this.session && this.session.mode === GAME_MODES.CLASSIC && this.session.stats.total === 0) {
+						this.initState();
+					}
 					const cloudStatusBadge = document.getElementById("cloud-status-indicator");
 					if (cloudStatusBadge) {
 						cloudStatusBadge.textContent = "Synchro OK";
@@ -437,6 +325,10 @@ class ConjugationApp {
 					}
 				}
 			})
+			.catch((err) => {
+				console.warn("Silent startup pull failed:", err);
+			});
+
 		// Deep-linking: detect mode & level from URL query parameters or hash
 		if (typeof window !== "undefined") {
 			const urlParams = new URLSearchParams(window.location.search);
@@ -509,14 +401,19 @@ class ConjugationApp {
 			});
 		});
 
+		// Manual End Session / Recap button
+		document.getElementById("end-session-btn")?.addEventListener("click", () => {
+			this.session.endSession();
+		});
+
 		// Modal buttons
 		document.getElementById("modal-restart-btn").addEventListener("click", () => {
-			this.closeSessionModal();
-			this.switchMode(this.session.mode);
+			const targetMode = this.session.mode;
+			this.closeSessionModal(false);
+			this.switchMode(targetMode);
 		});
 		document.getElementById("modal-close-btn").addEventListener("click", () => {
-			this.closeSessionModal();
-			this.switchMode(GAME_MODES.CLASSIC);
+			this.closeSessionModal(true);
 		});
 		document.getElementById("copy-mistakes-btn").addEventListener("click", () => {
 			const tsv = this.session.exportMistakesTSV();
@@ -566,6 +463,10 @@ class ConjugationApp {
 		const qrImg = document.getElementById("qr-code-img");
 		const btnShowQr = document.getElementById("btn-show-qr");
 		if (btnShowQr && qrImg) {
+			qrImg.onerror = () => {
+				qrImg.style.display = "none";
+				alert("Le volume de données est trop important pour générer un QR code direct. Utilise le bouton 'Copier le lien' ou la synchronisation GitHub Gist.");
+			};
 			btnShowQr.addEventListener("click", () => {
 				const url = generateSyncUrl();
 				qrImg.src = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + encodeURIComponent(url);
@@ -622,12 +523,13 @@ class ConjugationApp {
 			gistStatusMsg.style.color = "#ffeb3b";
 			try {
 				const res = await autoConnectGitHub(token);
+				this.refreshStateFromStorage();
 				refreshCloudUi();
 				gistStatusMsg.textContent = res.isNew
 					? "Nouveau Gist créé et synchronisé avec succès."
 					: "Gist synchronisé avec succès.";
 				gistStatusMsg.style.color = "#00e676";
-				this.initState(wordData);
+				this.initState();
 				triggerAutoSync();
 			} catch (err) {
 				gistStatusMsg.textContent = `Erreur : ${err.message}`;
@@ -640,6 +542,24 @@ class ConjugationApp {
 			refreshCloudUi();
 			gistStatusMsg.textContent = "Mode Cloud désactivé. Stockage local uniquement.";
 			gistStatusMsg.style.color = "#aaa";
+		});
+	}
+
+	refreshStateFromStorage() {
+		this.selectedLevel = localStorage.getItem("dojoSelectedLevel") || "all";
+		const storedCustom = localStorage.getItem("dojoCustomVocab");
+		if (storedCustom) {
+			try {
+				this.customWords = JSON.parse(storedCustom);
+			} catch (e) {
+				this.customWords = [];
+			}
+		} else {
+			this.customWords = [];
+		}
+
+		document.querySelectorAll(".preset-btn").forEach((btn) => {
+			btn.classList.toggle("active", btn.getAttribute("data-level") === this.selectedLevel);
 		});
 	}
 
@@ -664,11 +584,16 @@ class ConjugationApp {
 			btn.classList.toggle("active", btn.getAttribute("data-level") === level);
 		});
 
+		if (this.state) {
+			this.state.wordsRecentlySeenQueue = [];
+		}
 		const rawVocab = getVocabObjectForLevel(level, this.customWords);
 		this.state.completeWordList = createWordList(rawVocab);
 		this.applySettingsUpdateWordList();
 		this.state.currentWord = loadNewWord(this.state.currentWordList);
-		this.loadMainView();
+		if (this.state.activeScreen !== SCREENS.settings) {
+			this.loadMainView();
+		}
 		triggerAutoSync();
 	}
 
@@ -701,8 +626,21 @@ class ConjugationApp {
 		const inputContainer = document.getElementById("input-container");
 		const dokkaiContainer = document.getElementById("dokkai-options-container");
 
-		// Reset streaks in UI
+		// If currently on options screen, close options and restore main game view
+		const optionsView = document.getElementById("options-view");
+		if (optionsView && !optionsView.classList.contains("display-none")) {
+			toggleDisplayNone(optionsView, true);
+			toggleDisplayNone(document.getElementById("donation-section"), true);
+			toggleDisplayNone(document.getElementById("main-view"), false);
+		}
+
+		// Reset streaks & combo in UI
 		document.getElementById("current-streak-text").textContent = "0";
+		const comboText = document.getElementById("combo-text");
+		if (comboText) comboText.textContent = "0";
+
+		// Force loading a fresh word when switching modes
+		this.state.loadWordOnReset = true;
 
 		if (mode === GAME_MODES.SPRINT) {
 			toggleDisplayNone(timerBadge, false);
@@ -752,9 +690,11 @@ class ConjugationApp {
 			this.state.currentStreak0OnReset = false;
 		}
 
-		if (this.state.loadWordOnReset) {
+		if (this.state.loadWordOnReset || !this.state.currentWord) {
 			this.state.currentWord = loadNewWord(this.state.currentWordList);
 			this.state.loadWordOnReset = false;
+		} else {
+			updateCurrentWord(this.state.currentWord);
 		}
 
 		showFurigana(
@@ -777,7 +717,10 @@ class ConjugationApp {
 	}
 
 	loadDokkaiQuestion() {
+		this.isDokkaiProcessing = false;
 		this.state.activeScreen = SCREENS.question;
+		document.getElementById("main-view").classList.add("question-screen");
+		document.getElementById("main-view").classList.remove("results-screen");
 		toggleDisplayNone(document.getElementById("status-box"), true);
 		toggleDisplayNone(document.getElementById("press-any-key-text"), true);
 
@@ -796,6 +739,9 @@ class ConjugationApp {
 		toggleBackgroundNone(document.getElementById("verb-box"), true);
 		changeVerbBoxFontColor("rgb(232, 232, 232)");
 
+		// Ensure translation is visible in Dokkai Flash mode
+		showTranslation(true, false);
+
 		document.getElementById("verb-text").textContent = challenge.prompt;
 		document.getElementById("translation").textContent = challenge.engMeaning;
 		document.getElementById("verb-type").textContent = `Base : ${challenge.dictForm}`;
@@ -806,10 +752,16 @@ class ConjugationApp {
 		const dokkaiBtns = document.querySelectorAll(".dokkai-btn");
 		dokkaiBtns.forEach((btn, idx) => {
 			btn.classList.remove("correct-choice", "wrong-choice");
-			btn.disabled = false;
 			const labelSpan = btn.querySelector(".dokkai-label");
-			if (labelSpan && challenge.options[idx]) {
-				labelSpan.textContent = challenge.options[idx];
+			if (challenge.options[idx]) {
+				btn.style.display = "";
+				btn.disabled = false;
+				if (labelSpan) {
+					labelSpan.textContent = challenge.options[idx];
+				}
+			} else {
+				btn.style.display = "none";
+				btn.disabled = true;
 			}
 		});
 
@@ -817,7 +769,8 @@ class ConjugationApp {
 	}
 
 	handleDokkaiChoice(chosenIndex) {
-		if (!this.currentDokkaiChallenge) return;
+		if (!this.currentDokkaiChallenge || this.isDokkaiProcessing) return;
+		this.isDokkaiProcessing = true;
 
 		const challenge = this.currentDokkaiChallenge;
 		const isCorrect = chosenIndex === challenge.correctIndex;
@@ -843,7 +796,6 @@ class ConjugationApp {
 		if (isCorrect) {
 			sfx.playSuccess(result.reactionMs < 1200);
 			if (result.stats.streak % 5 === 0) sfx.playComboMilestone();
-			document.getElementById("current-streak-text").textContent = result.stats.streak;
 			document.getElementById("combo-text").textContent = result.stats.streak;
 			if (this.state && this.state.maxScoreObjects) {
 				addToScore(1, this.state.maxScoreObjects, this.state.maxScoreIndex);
@@ -860,6 +812,8 @@ class ConjugationApp {
 		setTimeout(() => {
 			if (this.session.mode === GAME_MODES.DOKKAI) {
 				this.loadDokkaiQuestion();
+			} else {
+				this.isDokkaiProcessing = false;
 			}
 		}, delay);
 	}
@@ -867,6 +821,12 @@ class ConjugationApp {
 	showSessionModal(summary) {
 		const modal = document.getElementById("session-modal");
 		if (!modal) return;
+
+		const mainInput = document.getElementById("main-text-input");
+		if (mainInput) {
+			mainInput.disabled = true;
+			mainInput.blur();
+		}
 
 		document.getElementById("stat-score").textContent = `${summary.correct} / ${summary.total} (${summary.accuracy}%)`;
 		document.getElementById("stat-speed").textContent = `${(summary.avgSpeedMs / 1000).toFixed(1)}s`;
@@ -882,7 +842,7 @@ class ConjugationApp {
 			mistakesList.innerHTML = summary.mistakes
 				.map(
 					(m) =>
-						`<div class="mistake-entry"><strong>${m.question}</strong> &rarr; <em>${m.expected}</em> <span style="color:#aaa">(${m.meaning || m.dictForm})</span></div>`
+						`<div class="mistake-entry"><strong>${escapeHtml(m.question)}</strong> &rarr; <em>${escapeHtml(m.expected)}</em> <span style="color:#aaa">(${escapeHtml(m.meaning || m.dictForm)})</span></div>`
 				)
 				.join("");
 		} else {
@@ -892,17 +852,40 @@ class ConjugationApp {
 		toggleDisplayNone(modal, false);
 	}
 
-	closeSessionModal() {
+	closeSessionModal(shouldSwitchToClassic = true) {
 		const modal = document.getElementById("session-modal");
 		if (modal) toggleDisplayNone(modal, true);
+		if (shouldSwitchToClassic) {
+			if (this.session && (this.session.mode === GAME_MODES.SURVIVAL || this.session.mode === GAME_MODES.SPRINT)) {
+				this.switchMode(GAME_MODES.CLASSIC);
+				return;
+			}
+		}
 		this.loadMainView();
 	}
 
 	onKeyDown(e) {
 		const keyCode = e.keyCode ? e.keyCode : e.which;
+		const isEnter = e.key === "Enter" || keyCode === 13;
+		const isEscape = e.key === "Escape" || keyCode === 27;
 
-		// Number keys 1-4 for Dokkai Flash mode
-		if (this.session.mode === GAME_MODES.DOKKAI && this.state.activeScreen === SCREENS.question) {
+		// Number keys 1-4 for Dokkai Flash mode (standard, numpad, and AZERTY laptop row)
+		if (
+			this.session.mode === GAME_MODES.DOKKAI &&
+			this.state.activeScreen === SCREENS.question &&
+			!this.isDokkaiProcessing
+		) {
+			const azertyMap = { "&": 0, "é": 1, '"': 2, "'": 3 };
+			if (e.key in azertyMap) {
+				e.preventDefault();
+				this.handleDokkaiChoice(azertyMap[e.key]);
+				return;
+			}
+			if (e.code && /^Digit[1-4]$/.test(e.code)) {
+				e.preventDefault();
+				this.handleDokkaiChoice(parseInt(e.code.slice(5), 10) - 1);
+				return;
+			}
 			if (keyCode >= 49 && keyCode <= 52) { // 1, 2, 3, 4
 				e.preventDefault();
 				this.handleDokkaiChoice(keyCode - 49);
@@ -915,19 +898,19 @@ class ConjugationApp {
 			}
 		}
 
-		// Escape to close session modal
-		if (keyCode === 27) {
-			const modal = document.getElementById("session-modal");
-			if (modal && !modal.classList.contains("display-none")) {
-				this.closeSessionModal();
-				return;
+		// Session modal key handling
+		const modal = document.getElementById("session-modal");
+		if (modal && !modal.classList.contains("display-none")) {
+			if (isEscape) {
+				this.closeSessionModal(true);
 			}
+			return;
 		}
 
 		// Enter on results screen to continue
 		if (
 			this.state.activeScreen === SCREENS.results &&
-			keyCode === 13 &&
+			isEnter &&
 			document.activeElement.id !== "options-button"
 		) {
 			this.loadMainView();
@@ -937,7 +920,7 @@ class ConjugationApp {
 	onTouchEnd(e) {
 		if (
 			this.state.activeScreen === SCREENS.results &&
-			e.target !== document.getElementById("options-button")
+			!e.target.closest("#options-button, #mode-bar, #sound-toggle-btn, #end-session-btn")
 		) {
 			this.loadMainView();
 		}
@@ -945,11 +928,15 @@ class ConjugationApp {
 
 	inputKeyPress(e) {
 		const keyCode = e.keyCode ? e.keyCode : e.which;
-		if (keyCode === 13) {
+		const isEnter = e.key === "Enter" || keyCode === 13;
+		if (isEnter) {
+			if (e.isComposing || e.keyCode === 229) return;
 			e.stopPropagation();
 
+			if (!this.state.currentWord) return;
+
 			const mainInput = document.getElementById("main-text-input");
-			let inputValue = mainInput.value;
+			let inputValue = mainInput.value.trim();
 
 			const finalChar = inputValue[inputValue.length - 1];
 			switch (finalChar) {
@@ -957,7 +944,7 @@ class ConjugationApp {
 				case "。": inputValue = inputValue.replace(/。$/, ""); break;
 			}
 
-			if (!isJapanese(inputValue)) {
+			if (inputValue !== "" && !isJapanese(inputValue)) {
 				document.getElementById("input-tooltip").classList.add("tooltip-fade-animation");
 				return;
 			} else {
@@ -998,7 +985,7 @@ class ConjugationApp {
 			const comboText = document.getElementById("combo-text");
 			if (comboText) comboText.textContent = result.stats.streak;
 
-			updateProbabilites(
+			updateProbabilities(
 				this.state.currentWordList,
 				this.state.wordsRecentlySeenQueue,
 				this.state.currentWord,
@@ -1014,6 +1001,12 @@ class ConjugationApp {
 			}
 			this.state.loadWordOnReset = true;
 
+			if (this.session.mode === GAME_MODES.SURVIVAL && !inputWasCorrect) {
+				mainInput.disabled = true;
+				mainInput.value = "";
+				return;
+			}
+
 			mainInput.disabled = true;
 			toggleDisplayNone(document.getElementById("press-any-key-text"), false);
 			mainInput.value = "";
@@ -1021,6 +1014,9 @@ class ConjugationApp {
 	}
 
 	settingsButtonClicked(e) {
+		if (this.session) {
+			this.session.pauseSprint();
+		}
 		this.state.activeScreen = SCREENS.settings;
 		selectCheckboxesInUi(this.state.settings);
 		showHideOptionsAndCheckErrors();
@@ -1047,6 +1043,7 @@ class ConjugationApp {
 			this.state.maxScoreIndex = newMaxScoreIndex;
 			this.state.currentStreak0OnReset = true;
 			this.state.loadWordOnReset = true;
+			this.state.wordsRecentlySeenQueue = [];
 			this.applySettingsUpdateWordList();
 		} else {
 			applyNonConjugationSettings(this.state.settings);
@@ -1059,11 +1056,15 @@ class ConjugationApp {
 		toggleDisplayNone(document.getElementById("options-view"), true);
 		toggleDisplayNone(document.getElementById("donation-section"), true);
 
+		if (this.session && this.session.mode === GAME_MODES.SPRINT) {
+			this.session.resumeSprint();
+		}
+
 		this.loadMainView();
 		triggerAutoSync();
 	}
 
-	initState(words) {
+	initState() {
 		this.state = {};
 		const rawVocab = getVocabObjectForLevel(this.selectedLevel, this.customWords);
 		this.state.completeWordList = createWordList(rawVocab);
@@ -1080,9 +1081,14 @@ class ConjugationApp {
 			this.state.maxScoreObjects[this.state.maxScoreIndex] = new MaxScoreObject(0);
 			localStorage.setItem("maxScoreObjectsV2", JSON.stringify(this.state.maxScoreObjects));
 		} else {
+			let savedSettings = {};
+			try {
+				savedSettings = JSON.parse(localStorage.getItem("settings") || "{}") || {};
+			} catch (e) {}
+
 			this.state.settings = Object.assign(
 				getDefaultAdditiveSettings(),
-				JSON.parse(localStorage.getItem("settings"))
+				savedSettings
 			);
 			this.state.maxScoreIndex = calculateMaxScoreIndex(this.state.settings);
 
@@ -1097,7 +1103,14 @@ class ConjugationApp {
 				localStorage.removeItem("maxScoreObjects");
 				localStorage.removeItem("maxScoreIndex");
 			} else {
-				this.state.maxScoreObjects = JSON.parse(localStorage.getItem("maxScoreObjectsV2"));
+				let parsedScores = {};
+				try {
+					parsedScores = JSON.parse(localStorage.getItem("maxScoreObjectsV2") || "{}") || {};
+				} catch (e) {}
+				this.state.maxScoreObjects = parsedScores;
+				if (!this.state.maxScoreObjects[this.state.maxScoreIndex]) {
+					this.state.maxScoreObjects[this.state.maxScoreIndex] = new MaxScoreObject(0);
+				}
 			}
 		}
 
