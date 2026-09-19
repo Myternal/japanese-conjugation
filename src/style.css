@@ -364,7 +364,8 @@ h2 {
 	width: 35%;
 }
 
-#options-form input {
+#options-form input[type="checkbox"],
+#options-form input[type="radio"] {
 	min-width: 13px;
 	min-height: 13px;
 	width: 0.6rem;

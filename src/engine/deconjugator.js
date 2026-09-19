@@ -139,19 +139,21 @@ export function generateDokkaiChallenge(wordList) {
 
 	// 3. Fallback dummy labels if still < 3 distractors
 	if (distractorLabels.size < 3) {
-		const fallbackForms = [
-			CONJUGATION_TYPES.past,
-			CONJUGATION_TYPES.te,
-			CONJUGATION_TYPES.potential,
-			CONJUGATION_TYPES.passive,
-			CONJUGATION_TYPES.causative,
-			CONJUGATION_TYPES.volitional,
-			CONJUGATION_TYPES.ba,
-			CONJUGATION_TYPES.tara,
-			CONJUGATION_TYPES.tai,
+		const fallbackVariations = [
+			{ type: CONJUGATION_TYPES.past, affirmative: true, polite: false },
+			{ type: CONJUGATION_TYPES.past, affirmative: false, polite: true },
+			{ type: CONJUGATION_TYPES.present, affirmative: false, polite: false },
+			{ type: CONJUGATION_TYPES.te, affirmative: null, polite: null },
+			{ type: CONJUGATION_TYPES.potential, affirmative: true, polite: false },
+			{ type: CONJUGATION_TYPES.passive, affirmative: true, polite: false },
+			{ type: CONJUGATION_TYPES.causative, affirmative: true, polite: false },
+			{ type: CONJUGATION_TYPES.volitional, affirmative: null, polite: false },
+			{ type: CONJUGATION_TYPES.ba, affirmative: true, polite: false },
+			{ type: CONJUGATION_TYPES.tara, affirmative: true, polite: false },
+			{ type: CONJUGATION_TYPES.tai, affirmative: true, polite: false },
 		];
-		for (const type of fallbackForms) {
-			const dummyLabel = `${toKanjiPlusHiragana(wordJSON.kanji)} • ${FORM_DESCRIPTIONS_FR[type] || type}`;
+		for (const fallback of fallbackVariations) {
+			const dummyLabel = formatConjugationLabel(wordJSON, fallback);
 			if (dummyLabel !== correctLabel) {
 				distractorLabels.add(dummyLabel);
 			}

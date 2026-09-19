@@ -442,4 +442,103 @@ test("escapeHtml sanitizes untrusted input", async () => {
 	assert.equal(escapeHtml(null), "");
 });
 
+test("Irregular adjectives 良い and 格好いい/格好良い produce full valid conjugations", async () => {
+	const yoiWord = { kanji: "良い", type: "ira", eng: "good" };
+	const yoiConjs = getAllConjugations(yoiWord);
+	assert.ok(yoiConjs.length >= 10, "良い must produce all standard conjugations");
+	const pastPlain = yoiConjs.find(
+		(c) => c.type === CONJUGATION_TYPES.past && c.affirmative && !c.polite
+	);
+	assert.ok(pastPlain.validAnswers.includes("よかった"));
+	assert.ok(pastPlain.validAnswers.includes("良かった"));
+
+	const kakkoiiWord = { kanji: "格好いい", type: "ira", eng: "cool" };
+	const kakkoiiConjs = getAllConjugations(kakkoiiWord);
+	assert.ok(kakkoiiConjs.length >= 10, "格好いい must produce all standard conjugations");
+	const kakkoiiPast = kakkoiiConjs.find(
+		(c) => c.type === CONJUGATION_TYPES.past && c.affirmative && !c.polite
+	);
+	assert.ok(kakkoiiPast.validAnswers.some((a) => a.includes("格好") || a.includes("かっこ")));
+});
+
+test("SessionManager caps outlier reaction times for session average", async () => {
+	const { SessionManager, GAME_MODES } = await import("../src/engine/gameModes.js");
+	const session = new SessionManager();
+	session.setMode(GAME_MODES.CLASSIC);
+
+	// Simulate a 120s idle answer
+	session.questionStartTime = performance.now() - 120000;
+	session.recordAnswer(true, { question: "test", expected: "test" });
+
+	const summary = session.endSession();
+	assert.ok(summary.avgSpeedMs <= 15000, `avgSpeedMs should be capped at 15000ms, got ${summary.avgSpeedMs}`);
+});
+
+test("exportMistakesTSV omits empty parentheses when meaning is missing", async () => {
+	const { SessionManager } = await import("../src/engine/gameModes.js");
+	const session = new SessionManager();
+	session.recordAnswer(false, { question: "食べる - Past", expected: "食べた", meaning: "" });
+	const tsv = session.exportMistakesTSV();
+	assert.equal(tsv, "食べる - Past\t食べた");
+});
+
+test("sanitizeRubyHtml sanitizes untrusted input while rendering valid ruby blocks", async () => {
+	const { sanitizeRubyHtml } = await import("../src/utils.js");
+	// Valid ruby
+	assert.equal(
+		sanitizeRubyHtml("<ruby>食<rt>た</rt></ruby>べる"),
+		'<ruby>食<span class="rt">た</span></ruby>べる'
+	);
+	// Malicious script injection outside ruby
+	assert.equal(
+		sanitizeRubyHtml("<script>alert('xss')</script>食べる"),
+		"&lt;script&gt;alert(&#039;xss&#039;)&lt;/script&gt;食べる"
+	);
+	// Malicious img injection outside ruby
+	assert.equal(
+		sanitizeRubyHtml('<img src=x onerror="alert(1)">'),
+		"&lt;img src=x onerror=&quot;alert(1)&quot;&gt;"
+	);
+	// Malicious injection inside ruby tag
+	assert.equal(
+		sanitizeRubyHtml("<ruby><script>alert(1)</script><rt>bad</rt></ruby>"),
+		'<ruby>alert(1)<span class="rt">bad</span></ruby>'
+	);
+	// Plain word without ruby
+	assert.equal(sanitizeRubyHtml("きれい"), "きれい");
+	assert.equal(sanitizeRubyHtml(""), "");
+	assert.equal(sanitizeRubyHtml(null), "");
+});
+
+test("parseCustomWordList correctly identifies irregular adjectives like 格好いい, 格好良い, 気持ちいい", async () => {
+	const { parseCustomWordList } = await import("../src/data/vocabData.js");
+	const words = parseCustomWordList("格好いい\tcool\n格好良い\n気持ちいい\tfeel good");
+	assert.equal(words.length, 3);
+	for (const w of words) {
+		assert.equal(w.type, "ira", `Expected ${w.kanji} to be type 'ira', got ${w.type}`);
+		const conjs = getAllConjugations(w);
+		const pastPlain = conjs.find(
+			(c) => c.type === CONJUGATION_TYPES.past && c.affirmative && !c.polite
+		);
+		assert.ok(pastPlain != null, `Past plain must exist for ${w.kanji}`);
+		assert.ok(
+			pastPlain.validAnswers.some((a) => a.includes("よかった") || a.includes("良かった")),
+			`Past plain for ${w.kanji} must contain よかった/良かった, got ${JSON.stringify(pastPlain.validAnswers)}`
+		);
+		assert.ok(
+			!pastPlain.validAnswers.some((a) => a.includes("いかった")),
+			`Past plain for ${w.kanji} must not contain invalid form 'いかった'`
+		);
+	}
+});
+
+test("checkSuffix handles short inputs gracefully without error", async () => {
+	const { checkSuffix } = await import("../src/engine/conjugator.js");
+	assert.equal(checkSuffix("く", "いく"), false);
+	assert.equal(checkSuffix("", "いく"), false);
+	assert.equal(checkSuffix(null, "いく"), false);
+	assert.equal(checkSuffix("持っていく", "いく"), "持って");
+});
+
+
 

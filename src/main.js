@@ -15,7 +15,6 @@ import {
 	calculateMaxScoreIndex,
 	convertMaxScoreObjectsToV2,
 } from "./settingManagement.js";
-import { wordData } from "./wordData.js";
 import { CONJUGATION_TYPES, PARTS_OF_SPEECH, MaxScoreObject } from "./constants.js";
 import {
 	createWordList,
@@ -23,7 +22,7 @@ import {
 	equalizeProbabilities,
 	updateProbabilities,
 } from "./engine/wordSelector.js";
-import { toggleDisplayNone, toggleBackgroundNone, escapeHtml } from "./utils.js";
+import { toggleDisplayNone, toggleBackgroundNone, escapeHtml, sanitizeRubyHtml } from "./utils.js";
 import { toKanjiPlusHiragana, toHiragana, dropFinalLetter } from "./engine/conjugator.js";
 import { sfx } from "./engine/soundEffects.js";
 import { GAME_MODES, SessionManager } from "./engine/gameModes.js";
@@ -136,10 +135,7 @@ function updateCurrentWord(word) {
 		return;
 	}
 
-	const verbHtml = word.wordJSON.kanji
-		.replaceAll("<rt>", '<span class="rt">')
-		.replaceAll("</rt>", "</span>");
-	document.getElementById("verb-text").innerHTML = verbHtml;
+	document.getElementById("verb-text").innerHTML = sanitizeRubyHtml(word.wordJSON.kanji);
 	document.getElementById("translation").textContent = word.wordJSON.eng;
 	document.getElementById("verb-type").textContent = "\u00A0";
 	document.getElementById("conjugation-inquery-text").innerHTML =
@@ -253,7 +249,7 @@ function getSubConjugationForm(word, validAnswer) {
 
 // Main ConjugationApp Controller
 class ConjugationApp {
-	constructor(words) {
+	constructor() {
 		const mainInput = document.getElementById("main-text-input");
 		bind(mainInput);
 
@@ -363,6 +359,11 @@ class ConjugationApp {
 
 		document.addEventListener("keydown", this.onKeyDown.bind(this));
 		document.addEventListener("touchend", this.onTouchEnd.bind(this));
+		document.addEventListener("visibilitychange", () => {
+			if (document.visibilityState === "hidden") {
+				triggerAutoSync();
+			}
+		});
 	}
 
 	setupDojoControls() {
@@ -445,6 +446,10 @@ class ConjugationApp {
 					this.customWords = parsed;
 					localStorage.setItem("dojoCustomVocab", JSON.stringify(parsed));
 					statusEl.textContent = `${parsed.length} mot(s) chargé(s) avec succès.`;
+					const customPresetBtn = document.getElementById("preset-btn-custom");
+					if (customPresetBtn) {
+						toggleDisplayNone(customPresetBtn, false);
+					}
 					this.setVocabLevel("custom");
 				} else {
 					statusEl.textContent = "Aucun mot valide détecté.";
@@ -530,6 +535,15 @@ class ConjugationApp {
 			}
 		});
 
+		if (gistTokenInput) {
+			gistTokenInput.addEventListener("keydown", (e) => {
+				if (e.key === "Enter") {
+					e.preventDefault();
+					document.getElementById("btn-cloud-connect")?.click();
+				}
+			});
+		}
+
 		document.getElementById("btn-cloud-disconnect")?.addEventListener("click", () => {
 			disconnectGitHub();
 			refreshCloudUi();
@@ -549,6 +563,11 @@ class ConjugationApp {
 			}
 		} else {
 			this.customWords = [];
+		}
+
+		const customPresetBtn = document.getElementById("preset-btn-custom");
+		if (customPresetBtn) {
+			toggleDisplayNone(customPresetBtn, this.customWords.length === 0);
 		}
 
 		document.querySelectorAll(".preset-btn").forEach((btn) => {
@@ -622,6 +641,10 @@ class ConjugationApp {
 		// If currently on options screen, close options and restore main game view
 		const optionsView = document.getElementById("options-view");
 		if (optionsView && !optionsView.classList.contains("display-none")) {
+			insertSettingsFromUi(this.state.settings);
+			localStorage.setItem("settings", JSON.stringify(this.state.settings));
+			this.state.maxScoreIndex = calculateMaxScoreIndex(this.state.settings);
+			this.applySettingsUpdateWordList();
 			toggleDisplayNone(optionsView, true);
 			toggleDisplayNone(document.getElementById("donation-section"), true);
 			toggleDisplayNone(document.getElementById("main-view"), false);
@@ -762,7 +785,10 @@ class ConjugationApp {
 	}
 
 	handleDokkaiChoice(chosenIndex) {
+		const modal = document.getElementById("session-modal");
+		if (modal && !modal.classList.contains("display-none")) return;
 		if (!this.currentDokkaiChallenge || this.isDokkaiProcessing) return;
+		if (!this.currentDokkaiChallenge.options || !this.currentDokkaiChallenge.options[chosenIndex]) return;
 		this.isDokkaiProcessing = true;
 
 		const challenge = this.currentDokkaiChallenge;
@@ -793,7 +819,6 @@ class ConjugationApp {
 			if (this.state && this.state.maxScoreObjects) {
 				addToScore(1, this.state.maxScoreObjects, this.state.maxScoreIndex);
 			}
-			triggerAutoSync();
 		} else {
 			sfx.playError();
 			document.getElementById("current-streak-text").textContent = "0";
@@ -848,6 +873,7 @@ class ConjugationApp {
 	closeSessionModal(shouldSwitchToClassic = true) {
 		const modal = document.getElementById("session-modal");
 		if (modal) toggleDisplayNone(modal, true);
+		triggerAutoSync();
 		if (shouldSwitchToClassic) {
 			if (this.session && (this.session.mode === GAME_MODES.SURVIVAL || this.session.mode === GAME_MODES.SPRINT)) {
 				this.switchMode(GAME_MODES.CLASSIC);
@@ -862,7 +888,16 @@ class ConjugationApp {
 		const isEnter = e.key === "Enter" || keyCode === 13;
 		const isEscape = e.key === "Escape" || keyCode === 27;
 
-		// Number keys 1-4 for Dokkai Flash mode (standard, numpad, and AZERTY laptop row)
+		// 1. Session modal key handling (takes priority over background inputs)
+		const modal = document.getElementById("session-modal");
+		if (modal && !modal.classList.contains("display-none")) {
+			if (isEscape) {
+				this.closeSessionModal(true);
+			}
+			return;
+		}
+
+		// 2. Number keys 1-4 for Dokkai Flash mode (standard, numpad, and AZERTY laptop row)
 		if (
 			this.session.mode === GAME_MODES.DOKKAI &&
 			this.state.activeScreen === SCREENS.question &&
@@ -891,29 +926,23 @@ class ConjugationApp {
 			}
 		}
 
-		// Session modal key handling
-		const modal = document.getElementById("session-modal");
-		if (modal && !modal.classList.contains("display-none")) {
-			if (isEscape) {
-				this.closeSessionModal(true);
-			}
-			return;
-		}
-
-		// Enter on results screen to continue
+		// 3. Enter on results screen to continue
 		if (
 			this.state.activeScreen === SCREENS.results &&
 			isEnter &&
-			document.activeElement.id !== "options-button"
+			document.activeElement?.tagName !== "BUTTON"
 		) {
 			this.loadMainView();
 		}
 	}
 
 	onTouchEnd(e) {
+		const modal = document.getElementById("session-modal");
+		if (modal && !modal.classList.contains("display-none")) return;
+
 		if (
 			this.state.activeScreen === SCREENS.results &&
-			!e.target.closest("#options-button, #mode-bar, #sound-toggle-btn, #end-session-btn")
+			!e.target.closest("#options-button, #mode-bar, #sound-toggle-btn, #end-session-btn, #session-modal")
 		) {
 			this.loadMainView();
 		}
@@ -988,7 +1017,6 @@ class ConjugationApp {
 			if (inputWasCorrect) {
 				addToScore(1, this.state.maxScoreObjects, this.state.maxScoreIndex);
 				this.state.currentStreak0OnReset = false;
-				triggerAutoSync();
 			} else {
 				this.state.currentStreak0OnReset = true;
 			}
@@ -1133,7 +1161,7 @@ class ConjugationApp {
 }
 
 function initApp() {
-	new ConjugationApp(wordData);
+	new ConjugationApp();
 }
 
 initApp();

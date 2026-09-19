@@ -217,7 +217,7 @@ function optionsGroupCheckError(groupElement) {
 	checkInputsAndToggleError(
 		inputs,
 		errorElement,
-		"*Must choose at least 1 option from this category",
+		"*Choisis au moins 1 option dans cette catégorie",
 		false
 	);
 }
@@ -240,7 +240,7 @@ function verbAndAdjCheckError() {
 	checkInputsAndToggleError(
 		inputs,
 		errorElement,
-		"*Must choose at least 1 option from this category",
+		"*Choisis au moins 1 option dans cette catégorie",
 		false
 	);
 }
@@ -289,7 +289,7 @@ function verbPresAffPlainCheckError() {
 		toggleError(
 			true,
 			errorElement,
-			"*Invalid combination: present, affirmative, plain"
+			"*Combinaison invalide : présent, affirmatif, neutre"
 		);
 		// These inputs could be hidden because the parent "Verb" option is unchecked, so check to enable back button
 		checkToEnableBackButton();
@@ -316,7 +316,7 @@ function adjPresAffPlainCheckError() {
 		toggleError(
 			true,
 			errorElement,
-			"*Invalid combination: い/irregular, present, affirmative, plain"
+			"*Combinaison invalide : い/irrégulier, présent, affirmatif, neutre"
 		);
 		// element could be hidden because verb is unchecked, so check to enable back button
 		checkToEnableBackButton();

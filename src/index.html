@@ -36,11 +36,11 @@
             <div id="main-view">
                 <div id="streak-container">
                     <div id="current-streak" class="streak">
-                        <p>Current Streak</p>
+                        <p>Série en cours</p>
                         <p id="current-streak-text">0</p>
                     </div>
                     <div id="max-streak" class="streak">
-                        <p>Max Streak</p>
+                        <p>Record</p>
                         <p id="max-streak-text"> </p>
                     </div>
                 </div>
@@ -72,7 +72,7 @@
 
                 <!-- Classic Direct Input Container -->
                 <div id="input-container">
-                    <div id="input-tooltip" class="tooltip">Invalid characters. Only Japanese kana and kanji are valid.</div>
+                    <div id="input-tooltip" class="tooltip">Caractères invalides. Seuls les kana et kanji japonais sont acceptés.</div>
                     <input id="main-text-input" type="text" maxlength="30" aria-label="Answer" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                 </div>
 
@@ -113,6 +113,7 @@
                             <button type="button" class="preset-btn" data-level="n3">N3 Pivot</button>
                             <button type="button" class="preset-btn" data-level="n2">N2 Avancé</button>
                             <button type="button" class="preset-btn active" data-level="all">Tous</button>
+                            <button type="button" class="preset-btn display-none" id="preset-btn-custom" data-level="custom">Perso</button>
                         </div>
                         <div class="custom-vocab-container">
                             <label for="custom-vocab-input"><strong>Importer une liste personnalisée (Satori Reader / Anki) :</strong></label>
@@ -169,58 +170,58 @@
 
                     <div id="non-conjugation-settings">
                         <div class="option-row">
-                            <div class="sub-option-row"><input id="furigana-checkbox" type="checkbox" name="furigana"><label for="furigana-checkbox">Show furigana above kanji</label></div>
+                            <div class="sub-option-row"><input id="furigana-checkbox" type="checkbox" name="furigana"><label for="furigana-checkbox">Afficher les furigana</label></div>
                             <div id="furigana-sub-options" class="option-row options-indent sub-options">
-                                <div class="sub-option-row"><input id="furigana-always-radio" type="radio" name="furiganaTiming" value="always"><label for="furigana-always-radio">always</label></div>
-                                <div class="sub-option-row"><input id="furigana-after-radio" type="radio" name="furiganaTiming" value="after"><label for="furigana-after-radio">only after answering</label></div>
+                                <div class="sub-option-row"><input id="furigana-always-radio" type="radio" name="furiganaTiming" value="always"><label for="furigana-always-radio">toujours</label></div>
+                                <div class="sub-option-row"><input id="furigana-after-radio" type="radio" name="furiganaTiming" value="after"><label for="furigana-after-radio">après réponse</label></div>
                             </div>
                         </div>
                         <div class="option-row">
-                            <div class="sub-option-row"><input id="translation-checkbox" type="checkbox" name="translation"><label for="translation-checkbox">Show English translations</label></div>
+                            <div class="sub-option-row"><input id="translation-checkbox" type="checkbox" name="translation"><label for="translation-checkbox">Afficher les traductions</label></div>
                             <div id="translation-sub-options" class="option-row options-indent sub-options">
-                                <div class="sub-option-row"><input id="translation-always-radio" type="radio" name="translationTiming" value="always"><label for="translation-always-radio">always</label></div>
-                                <div class="sub-option-row"><input id="translation-after-radio" type="radio" name="translationTiming" value="after"><label for="translation-after-radio">only after answering</label></div>
+                                <div class="sub-option-row"><input id="translation-always-radio" type="radio" name="translationTiming" value="always"><label for="translation-always-radio">toujours</label></div>
+                                <div class="sub-option-row"><input id="translation-after-radio" type="radio" name="translationTiming" value="after"><label for="translation-after-radio">après réponse</label></div>
                             </div>
                         </div>
-                        <div class="option-row"><input id="streak-checkbox" type="checkbox" name="streak"><label for="streak-checkbox">Show current/max streak</label></div>
+                        <div class="option-row"><input id="streak-checkbox" type="checkbox" name="streak"><label for="streak-checkbox">Afficher les compteurs de série</label></div>
                     </div>
 
                     <div id="conjugation-settings">
                         <hr>
                         <div id="verbs-h3-container">
-                            <input id="verbs-checkbox" type="checkbox" name="verb"><label for="verbs-checkbox" class="options-h3-label">Verbs</label>
-                            <span id="top-must-choose" class="settings-error-text display-none">*Must choose at least 1 option from this category</span>
+                            <input id="verbs-checkbox" type="checkbox" name="verb"><label for="verbs-checkbox" class="options-h3-label">Verbes</label>
+                            <span id="top-must-choose" class="settings-error-text display-none">*Choisis au moins 1 option dans cette catégorie</span>
                         </div>
                         <div class="options-indent" id="verb-options-container">
                             <table class="options-group">
                                 <tr>
-                                    <td><input id="verbu-checkbox" type="checkbox" name="verbu"><label for="verbu-checkbox">う-verbs</label></td>
-                                    <td rowspan="3" class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
+                                    <td><input id="verbu-checkbox" type="checkbox" name="verbu"><label for="verbu-checkbox">う-verbes</label></td>
+                                    <td rowspan="3" class="settings-error-text display-none">*Choisis au moins 1 option dans cette catégorie</td>
                                 </tr>
-                                <tr><td><input id="verbru-checkbox" type="checkbox" name="verbru"><label for="verbru-checkbox">る-verbs</label></td></tr>
-                                <tr><td><input id="verbirregular-checkbox" type="checkbox" name="verbirregular"><label for="verbirregular-checkbox">Irregular verbs</label></td></tr>
+                                <tr><td><input id="verbru-checkbox" type="checkbox" name="verbru"><label for="verbru-checkbox">る-verbes</label></td></tr>
+                                <tr><td><input id="verbirregular-checkbox" type="checkbox" name="verbirregular"><label for="verbirregular-checkbox">Verbes irréguliers</label></td></tr>
                             </table>
                             <hr>
                             <div id="verb-conjugation-type-group" class="options-group">
                                 <table>
                                     <tr>
-                                        <td><input id="verbpresent-checkbox" type="checkbox" name="verbpresent" class="verb-has-variations"><label for="verbpresent-checkbox">Present tense</label></td>
-                                        <td rowspan="7" class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
+                                        <td><input id="verbpresent-checkbox" type="checkbox" name="verbpresent" class="verb-has-variations"><label for="verbpresent-checkbox">Présent</label></td>
+                                        <td rowspan="7" class="settings-error-text display-none">*Choisis au moins 1 option dans cette catégorie</td>
                                     </tr>
-                                    <tr><td><input id="verbpast-checkbox" type="checkbox" name="verbpast" class="verb-has-variations"><label for="verbpast-checkbox">Past tense</label></td></tr>
-                                    <tr><td><input id="verbte-checkbox" type="checkbox" name="verbte"><label for="verbte-checkbox">て-form</label></td></tr>
-                                    <tr><td><input id="verbvolitional-checkbox" type="checkbox" name="verbvolitional" class="verb-has-politeness"><label for="verbvolitional-checkbox">Volitional (~よう)</label></td></tr>
+                                    <tr><td><input id="verbpast-checkbox" type="checkbox" name="verbpast" class="verb-has-variations"><label for="verbpast-checkbox">Passé</label></td></tr>
+                                    <tr><td><input id="verbte-checkbox" type="checkbox" name="verbte"><label for="verbte-checkbox">Forme en て</label></td></tr>
+                                    <tr><td><input id="verbvolitional-checkbox" type="checkbox" name="verbvolitional" class="verb-has-politeness"><label for="verbvolitional-checkbox">Volitif (~よう)</label></td></tr>
                                     <tr><td><input id="verbba-checkbox" type="checkbox" name="verbba" class="verb-has-variations"><label for="verbba-checkbox">Conditionnel (~ば)</label></td></tr>
                                     <tr><td><input id="verbtara-checkbox" type="checkbox" name="verbtara" class="verb-has-variations"><label for="verbtara-checkbox">Conditionnel (~たら)</label></td></tr>
                                     <tr><td><input id="verbtai-checkbox" type="checkbox" name="verbtai" class="verb-has-variations"><label for="verbtai-checkbox">Désiratif (~たい)</label></td></tr>
                                 </table>
                                 <div class="advanced-section">
-                                    <div id="advanced-text">ADVANCED</div>
-                                    <div class="advanced-option"><input id="verbpassive-checkbox" type="checkbox" name="verbpassive" class="verb-has-variations"><label for="verbpassive-checkbox">Passive (~られる)</label></div>
-                                    <div class="advanced-option"><input id="verbcausative-checkbox" type="checkbox" name="verbcausative" class="verb-has-variations"><label for="verbcausative-checkbox">Causative (~させる)</label></div>
-                                    <div class="advanced-option"><input id="verbcausativepassive-checkbox" type="checkbox" name="verbcausativepassive" class="verb-has-variations"><label for="verbcausativepassive-checkbox">Causative-Passive (~させられる)</label></div>
-                                    <div class="advanced-option"><input id="verbpotential-checkbox" type="checkbox" name="verbpotential" class="verb-has-variations"><label for="verbpotential-checkbox">Potential (~られる/れる)</label></div>
-                                    <div class="advanced-option"><input id="verbimperative-checkbox" type="checkbox" name="verbimperative"><label for="verbimperative-checkbox">Imperative (~ろ)</label></div>
+                                    <div id="advanced-text">AVANCÉ</div>
+                                    <div class="advanced-option"><input id="verbpassive-checkbox" type="checkbox" name="verbpassive" class="verb-has-variations"><label for="verbpassive-checkbox">Passif (~られる)</label></div>
+                                    <div class="advanced-option"><input id="verbcausative-checkbox" type="checkbox" name="verbcausative" class="verb-has-variations"><label for="verbcausative-checkbox">Causatif (~させる)</label></div>
+                                    <div class="advanced-option"><input id="verbcausativepassive-checkbox" type="checkbox" name="verbcausativepassive" class="verb-has-variations"><label for="verbcausativepassive-checkbox">Causatif-Passif (~させられる)</label></div>
+                                    <div class="advanced-option"><input id="verbpotential-checkbox" type="checkbox" name="verbpotential" class="verb-has-variations"><label for="verbpotential-checkbox">Potentiel (~られる/れる)</label></div>
+                                    <div class="advanced-option"><input id="verbimperative-checkbox" type="checkbox" name="verbimperative"><label for="verbimperative-checkbox">Impératif (~ろ)</label></div>
                                 </div>
                             </div>
                             <div id="verb-variations-container">
@@ -228,45 +229,45 @@
                                     <hr>
                                     <table>
                                         <tr>
-                                            <td><input id="verbaffirmative-checkbox" type="checkbox" name="verbaffirmative"><label for="verbaffirmative-checkbox">Affirmative</label></td>
-                                            <td rowspan="2" class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
+                                            <td><input id="verbaffirmative-checkbox" type="checkbox" name="verbaffirmative"><label for="verbaffirmative-checkbox">Affirmatif</label></td>
+                                            <td rowspan="2" class="settings-error-text display-none">*Choisis au moins 1 option dans cette catégorie</td>
                                         </tr>
-                                        <tr><td><input id="verbnegative-checkbox" type="checkbox" name="verbnegative"><label for="verbnegative-checkbox">Negative</label></td></tr>
+                                        <tr><td><input id="verbnegative-checkbox" type="checkbox" name="verbnegative"><label for="verbnegative-checkbox">Négatif</label></td></tr>
                                     </table>
                                 </div>
                                 <div id="verb-politeness-container" class="options-group">
                                     <hr>
                                     <table>
                                         <tr>
-                                            <td><input id="verbplain-checkbox" type="checkbox" name="verbplain"><label for="verbplain-checkbox">Plain</label></td>
-                                            <td rowspan="2" class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
+                                            <td><input id="verbplain-checkbox" type="checkbox" name="verbplain"><label for="verbplain-checkbox">Neutre</label></td>
+                                            <td rowspan="2" class="settings-error-text display-none">*Choisis au moins 1 option dans cette catégorie</td>
                                         </tr>
-                                        <tr><td><input id="verbpolite-checkbox" type="checkbox" name="verbpolite"><label for="verbpolite-checkbox">Polite</label></td></tr>
+                                        <tr><td><input id="verbpolite-checkbox" type="checkbox" name="verbpolite"><label for="verbpolite-checkbox">Poli</label></td></tr>
                                     </table>
                                 </div>
                             </div>
                         </div>
 
                         <div id="adjectives-h3-container">
-                            <input id="adjectives-checkbox" type="checkbox" name="adjective"><label for="adjectives-checkbox" class="options-h3-label">Adjectives</label>
+                            <input id="adjectives-checkbox" type="checkbox" name="adjective"><label for="adjectives-checkbox" class="options-h3-label">Adjectifs</label>
                         </div>
                         <div class="options-indent" id="adjective-options-container">
                             <table class="options-group" id="adjective-type-group">
                                 <tr>
-                                    <td><input id="adjectivei-checkbox" type="checkbox" name="adjectivei"><label for="adjectivei-checkbox">い-adjectives</label></td>
-                                    <td rowspan="3" class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
+                                    <td><input id="adjectivei-checkbox" type="checkbox" name="adjectivei"><label for="adjectivei-checkbox">い-adjectifs</label></td>
+                                    <td rowspan="3" class="settings-error-text display-none">*Choisis au moins 1 option dans cette catégorie</td>
                                 </tr>
-                                <tr><td><input id="adjectivena-checkbox" type="checkbox" name="adjectivena"><label for="adjectivena-checkbox">な-adjectives</label></td></tr>
-                                <tr><td><input id="adjectiveirregular-checkbox" type="checkbox" name="adjectiveirregular"><label for="adjectiveirregular-checkbox">Irregular adjectives</label></td></tr>
+                                <tr><td><input id="adjectivena-checkbox" type="checkbox" name="adjectivena"><label for="adjectivena-checkbox">な-adjectifs</label></td></tr>
+                                <tr><td><input id="adjectiveirregular-checkbox" type="checkbox" name="adjectiveirregular"><label for="adjectiveirregular-checkbox">Adjectifs irréguliers</label></td></tr>
                             </table>
                             <hr>
                             <table class="options-group" id="adjective-conjugation-type-group">
                                 <tr>
-                                    <td><input id="adjectivepresent-checkbox" type="checkbox" name="adjectivepresent" class="adjective-has-variations"><label for="adjectivepresent-checkbox">Present tense</label></td>
-                                    <td rowspan="5" class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
+                                    <td><input id="adjectivepresent-checkbox" type="checkbox" name="adjectivepresent" class="adjective-has-variations"><label for="adjectivepresent-checkbox">Présent</label></td>
+                                    <td rowspan="5" class="settings-error-text display-none">*Choisis au moins 1 option dans cette catégorie</td>
                                 </tr>
-                                <tr><td><input id="adjectivepast-checkbox" type="checkbox" name="adjectivepast" class="adjective-has-variations"><label for="adjectivepast-checkbox">Past tense</label></td></tr>
-                                <tr><td><input id="adjectiveadverb-checkbox" type="checkbox" name="adjectiveadverb"><label for="adjectiveadverb-checkbox">Adverb</label></td></tr>
+                                <tr><td><input id="adjectivepast-checkbox" type="checkbox" name="adjectivepast" class="adjective-has-variations"><label for="adjectivepast-checkbox">Passé</label></td></tr>
+                                <tr><td><input id="adjectiveadverb-checkbox" type="checkbox" name="adjectiveadverb"><label for="adjectiveadverb-checkbox">Adverbe</label></td></tr>
                                 <tr><td><input id="adjectiveba-checkbox" type="checkbox" name="adjectiveba" class="adjective-has-variations"><label for="adjectiveba-checkbox">Conditionnel (~ば)</label></td></tr>
                                 <tr><td><input id="adjectivetara-checkbox" type="checkbox" name="adjectivetara" class="adjective-has-variations"><label for="adjectivetara-checkbox">Conditionnel (~たら)</label></td></tr>
                             </table>
@@ -275,20 +276,20 @@
                                     <hr>
                                     <table>
                                         <tr>
-                                            <td><input id="adjectiveaffirmative-checkbox" type="checkbox" name="adjectiveaffirmative"><label for="adjectiveaffirmative-checkbox">Affirmative</label></td>
-                                            <td rowspan="2" class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
+                                            <td><input id="adjectiveaffirmative-checkbox" type="checkbox" name="adjectiveaffirmative"><label for="adjectiveaffirmative-checkbox">Affirmatif</label></td>
+                                            <td rowspan="2" class="settings-error-text display-none">*Choisis au moins 1 option dans cette catégorie</td>
                                         </tr>
-                                        <tr><td><input id="adjectivenegative-checkbox" type="checkbox" name="adjectivenegative"><label for="adjectivenegative-checkbox">Negative</label></td></tr>
+                                        <tr><td><input id="adjectivenegative-checkbox" type="checkbox" name="adjectivenegative"><label for="adjectivenegative-checkbox">Négatif</label></td></tr>
                                     </table>
                                 </div>
                                 <div class="options-group">
                                     <hr>
                                     <table>
                                         <tr>
-                                            <td><input id="adjectiveplain-checkbox" type="checkbox" name="adjectiveplain"><label for="adjectiveplain-checkbox">Plain</label></td>
-                                            <td rowspan="2" class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
+                                            <td><input id="adjectiveplain-checkbox" type="checkbox" name="adjectiveplain"><label for="adjectiveplain-checkbox">Neutre</label></td>
+                                            <td rowspan="2" class="settings-error-text display-none">*Choisis au moins 1 option dans cette catégorie</td>
                                         </tr>
-                                        <tr><td><input id="adjectivepolite-checkbox" type="checkbox" name="adjectivepolite"><label for="adjectivepolite-checkbox">Polite</label></td></tr>
+                                        <tr><td><input id="adjectivepolite-checkbox" type="checkbox" name="adjectivepolite"><label for="adjectivepolite-checkbox">Poli</label></td></tr>
                                     </table>
                                 </div>
                             </div>

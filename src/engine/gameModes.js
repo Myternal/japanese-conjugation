@@ -50,13 +50,18 @@ export class SessionManager {
 		};
 	}
 
-	startSprint() {
-		this.resetSession();
-		this.timeRemaining = this.sprintDuration;
+	_startTimerInterval() {
+		this.stopTimer();
+		this.targetEndTime = Date.now() + this.timeRemaining * 1000;
 		this.onTick(this.timeRemaining);
 
 		this.timerInterval = setInterval(() => {
-			this.timeRemaining--;
+			if (this.targetEndTime) {
+				const remainingMs = this.targetEndTime - Date.now();
+				this.timeRemaining = Math.max(0, Math.ceil(remainingMs / 1000));
+			} else {
+				this.timeRemaining--;
+			}
 			this.onTick(this.timeRemaining);
 
 			if (this.timeRemaining <= 0) {
@@ -64,7 +69,13 @@ export class SessionManager {
 				sfx.playSprintEnd();
 				this.endSession();
 			}
-		}, 1000);
+		}, 500);
+	}
+
+	startSprint() {
+		this.resetSession();
+		this.timeRemaining = this.sprintDuration;
+		this._startTimerInterval();
 	}
 
 	pauseSprint() {
@@ -74,19 +85,7 @@ export class SessionManager {
 	resumeSprint() {
 		if (this.mode !== GAME_MODES.SPRINT) return;
 		if (this.timeRemaining <= 0) return;
-		this.stopTimer();
-		this.onTick(this.timeRemaining);
-
-		this.timerInterval = setInterval(() => {
-			this.timeRemaining--;
-			this.onTick(this.timeRemaining);
-
-			if (this.timeRemaining <= 0) {
-				this.stopTimer();
-				sfx.playSprintEnd();
-				this.endSession();
-			}
-		}, 1000);
+		this._startTimerInterval();
 	}
 
 	stopTimer() {
@@ -101,9 +100,12 @@ export class SessionManager {
 	}
 
 	recordAnswer(isCorrect, { question, expected, userGiven = "", meaning = "", dictForm = "" } = {}) {
-		const reactionMs = Math.round(performance.now() - this.questionStartTime);
+		const rawReactionMs = Math.round(performance.now() - this.questionStartTime);
+		const reactionMs = Math.max(0, rawReactionMs);
+		// Cap reaction time for statistical averaging at 15s to avoid idle skew
+		const cappedReactionForStats = Math.min(reactionMs, 15000);
 		this.stats.total++;
-		this.stats.reactionTimes.push(reactionMs);
+		this.stats.reactionTimes.push(cappedReactionForStats);
 
 		// Evaluate speed category (calibrated against user's 3-second Anki rule)
 		let speedTag = {
@@ -172,9 +174,12 @@ export class SessionManager {
 
 	exportMistakesTSV() {
 		if (!this.stats.mistakes || this.stats.mistakes.length === 0) return "";
-		// Header row optional, TSV format: Front (Question/Form) \t Back (Expected + Meaning)
+		// TSV format: Front (Question/Form) \t Back (Expected + Meaning)
 		return this.stats.mistakes
-			.map((m) => `${m.question}\t${m.expected} (${m.meaning})`)
+			.map((m) => {
+				const meaningSuffix = m.meaning ? ` (${m.meaning})` : "";
+				return `${m.question}\t${m.expected}${meaningSuffix}`;
+			})
 			.join("\n");
 	}
 }

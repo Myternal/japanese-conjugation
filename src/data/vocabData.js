@@ -173,8 +173,7 @@ function getKnownWord(cleanWord) {
 	if (!knownWordsMap) {
 		knownWordsMap = new Map();
 		const allPredefined = [
-			...wordData.verbs,
-			...wordData.adjectives,
+			...EXTENDED_JLPT_VOCAB.n5,
 			...EXTENDED_JLPT_VOCAB.n4,
 			...EXTENDED_JLPT_VOCAB.n3,
 			...EXTENDED_JLPT_VOCAB.n2,
@@ -193,6 +192,20 @@ function getKnownWord(cleanWord) {
 		const iiWord = allPredefined.find((i) => i.kanji === "いい");
 		if (iiWord && !knownWordsMap.has("良い")) {
 			knownWordsMap.set("良い", { ...iiWord, kanji: "良い" });
+		}
+
+		// Aliases for かっこいい / 格好いい / 格好良い / かっこ良い
+		const kakkoiiWord = allPredefined.find((i) => i.kanji === "かっこいい");
+		if (kakkoiiWord) {
+			for (const alt of ["格好いい", "格好良い", "かっこ良い"]) {
+				if (!knownWordsMap.has(alt)) {
+					knownWordsMap.set(alt, {
+						...kakkoiiWord,
+						kanji: alt,
+						altOkurigana: ["かっこいい", "格好いい", "かっこ良い", "格好良い"],
+					});
+				}
+			}
 		}
 	}
 	if (knownWordsMap.has(cleanWord)) {
@@ -261,7 +274,17 @@ export function parseCustomWordList(rawText) {
 			} else if (plainWord === "ある") {
 				type = "irv";
 			} else if (plainWord.endsWith("い") && !plainWord.endsWith("る")) {
-				type = plainWord === "いい" || plainWord === "良い" || plainWord.endsWith("かっこいい") ? "ira" : "i";
+				const isIra =
+					plainWord === "いい" ||
+					plainWord === "良い" ||
+					plainWord.endsWith("かっこいい") ||
+					plainWord.endsWith("かっこ良い") ||
+					plainWord.endsWith("格好いい") ||
+					plainWord.endsWith("格好良い") ||
+					plainWord.endsWith("気持ちいい") ||
+					plainWord.endsWith("気持ち良い") ||
+					plainWord.endsWith("きもちいい");
+				type = isIra ? "ira" : "i";
 			} else if (plainWord.endsWith("な") && !plainWord.endsWith("ない") && plainWord.length > 1) {
 				type = "na";
 				finalKanji = finalKanji.replace(/な$/, "");

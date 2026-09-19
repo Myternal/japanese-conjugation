@@ -128,6 +128,9 @@ export function getPartOfSpeech(wordJSON) {
 }
 
 export function checkSuffix(hiraganaWord, suffix) {
+	if (!hiraganaWord || hiraganaWord.length < suffix.length) {
+		return false;
+	}
 	for (let i = 1; i <= suffix.length; i++) {
 		if (hiraganaWord[hiraganaWord.length - i] !== suffix[suffix.length - i]) {
 			return false;
@@ -432,11 +435,25 @@ export function iiConjugation(affirmative, polite, conjugationType) {
 }
 
 export function irregularAdjectiveConjugation(hiraganaAdjective, affirmative, polite, conjugationType) {
-	if (hiraganaAdjective === "いい") {
+	if (hiraganaAdjective === "いい" || hiraganaAdjective === "良い") {
 		return iiConjugation(affirmative, polite, conjugationType);
-	} else if (hiraganaAdjective === "かっこいい") {
+	}
+	for (const suffix of ["かっこいい", "かっこ良い", "格好いい", "格好良い"]) {
+		if (hiraganaAdjective === suffix) {
+			const prefix = suffix.startsWith("格好") ? "格好" : "かっこ";
+			const conjugations = [].concat(iiConjugation(affirmative, polite, conjugationType));
+			return conjugations.map((c) => prefix + c);
+		}
+	}
+	if (hiraganaAdjective.endsWith("いい")) {
+		const prefix = hiraganaAdjective.slice(0, -2);
 		const conjugations = [].concat(iiConjugation(affirmative, polite, conjugationType));
-		return conjugations.map((c) => "かっこ" + c);
+		return conjugations.map((c) => prefix + c);
+	}
+	if (hiraganaAdjective.endsWith("良い")) {
+		const prefix = hiraganaAdjective.slice(0, -1);
+		const conjugations = [].concat(iiConjugation(affirmative, polite, conjugationType));
+		return conjugations.map((c) => prefix + c);
 	}
 }
 
@@ -869,6 +886,16 @@ export function getAllConjugations(wordJSON) {
 			...(wordJSON.altOkurigana || []),
 		])
 	);
+
+	if (wordJSON.type === "ira") {
+		const plain = toKanjiPlusHiragana(wordJSON.kanji);
+		if (plain === "良い" || plain === "いい") {
+			validBaseWordSpellings.push("いい", "良い");
+		} else if (plain.includes("かっこ") || plain.includes("格好")) {
+			validBaseWordSpellings.push("かっこいい", "格好いい", "かっこ良い", "格好良い");
+		}
+		validBaseWordSpellings = Array.from(new Set(validBaseWordSpellings));
+	}
 
 	const typesWithStandardVariations = [
 		CONJUGATION_TYPES.present,

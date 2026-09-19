@@ -138,7 +138,7 @@ export async function pushToGitHubGist(token, gistId = null) {
 	const res = await fetch(url, {
 		method,
 		headers: {
-			Authorization: `token ${token.trim()}`,
+			Authorization: `Bearer ${token.trim()}`,
 			Accept: "application/vnd.github.v3+json",
 			"Content-Type": "application/json",
 		},
@@ -162,7 +162,7 @@ export async function pullFromGitHubGist(token, gistId) {
 	const res = await fetch(`https://api.github.com/gists/${gistId.trim()}`, {
 		method: "GET",
 		headers: {
-			Authorization: `token ${token.trim()}`,
+			Authorization: `Bearer ${token.trim()}`,
 			Accept: "application/vnd.github.v3+json",
 		},
 	});
@@ -211,7 +211,7 @@ export async function autoConnectGitHub(token) {
 	// Check if user has an existing dojo gist (query up to 100 gists)
 	const res = await fetch("https://api.github.com/gists?per_page=100", {
 		headers: {
-			Authorization: `token ${cleanToken}`,
+			Authorization: `Bearer ${cleanToken}`,
 			Accept: "application/vnd.github.v3+json",
 		},
 	});
