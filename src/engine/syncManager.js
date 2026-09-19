@@ -118,7 +118,7 @@ export async function pushToGitHubGist(token, gistId = null) {
 
 	const payload = getLocalProgressPayload();
 	const bodyData = {
-		description: "Dojo Réflexe 日本語 - Sauvegarde de progression Cloud",
+		description: "Katsuyō - Sauvegarde de progression Cloud",
 		public: false,
 		files: {
 			[GIST_FILENAME]: {

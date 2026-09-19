@@ -1,5 +1,6 @@
 {
-	"name": "Dojo Réflexe 日本語",
+	"name": "Katsuyō - Japanese Conjugation",
+	"short_name": "Katsuyō",
 	"icons": [
 		{
 			"src": "./android-chrome-192x192.png",
@@ -13,7 +14,7 @@
 		}
 	],
 	"start_url": "./",
-	"theme_color": "#22221f",
-	"background_color": "#22221f",
+	"theme_color": "#0e1015",
+	"background_color": "#0e1015",
 	"display": "standalone"
 }

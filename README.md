@@ -1,6 +1,6 @@
-# Dojo Réflexe 日本語
+# Katsuyō (活用)
 
-Application d'entraînement réflexe pour la conjugaison et la reconnaissance rapide des verbes et adjectifs japonais. Conçue pour automatiser les déclinaisons et fluidifier la vitesse de lecture en *Dokkai* (JLPT N5 à N2).
+Application moderne d'entraînement et d'automatisation des réflexes de conjugaison pour les verbes et adjectifs japonais. Conçue pour fluidifier la reconnaissance et la vitesse de lecture en *Dokkai* (du niveau JLPT N5 au JLPT N2).
 
 **Application en ligne :** [https://myternal.github.io/japanese-conjugation/](https://myternal.github.io/japanese-conjugation/)
 

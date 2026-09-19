@@ -107,12 +107,24 @@ function changeVerbBoxFontColor(color) {
 	}
 }
 
+function setVerbTypeText(text = "") {
+	const el = document.getElementById("verb-type");
+	if (!el) return;
+	if (!text || text.trim() === "" || text === "\u00A0") {
+		el.textContent = "\u00A0";
+		el.classList.remove("visible-badge");
+	} else {
+		el.textContent = text;
+		el.classList.add("visible-badge");
+	}
+}
+
 function updateCurrentWord(word, settings = null) {
 	toggleBackgroundNone(document.getElementById("verb-box"), true);
 	if (!word || !word.wordJSON) {
 		document.getElementById("verb-text").innerHTML = "Aucun mot";
 		document.getElementById("translation").textContent = "Active plus d'options dans les paramètres.";
-		document.getElementById("verb-type").textContent = "\u00A0";
+		setVerbTypeText("");
 		document.getElementById("conjugation-inquery-text").innerHTML = "";
 		const mainInput = document.getElementById("main-text-input");
 		if (mainInput) mainInput.disabled = true;
@@ -123,7 +135,7 @@ function updateCurrentWord(word, settings = null) {
 	const showPatterns = !settings || settings.formPatterns !== false;
 	document.getElementById("verb-text").innerHTML = sanitizeRubyHtml(word.wordJSON.kanji);
 	document.getElementById("translation").textContent = word.wordJSON.eng;
-	document.getElementById("verb-type").textContent = "\u00A0";
+	setVerbTypeText("");
 	document.getElementById("conjugation-inquery-text").innerHTML =
 		conjugationInqueryFormatting(word.conjugation, showHint, showPatterns);
 }
@@ -173,40 +185,40 @@ function addToScore(amount = 1, maxScoreObjects, maxScoreIndex) {
 
 function typeToWordBoxColor(type) {
 	switch (type) {
-		case "u": return "rgb(255, 125, 0)";
-		case "ru": return "rgb(5, 80, 245)";
+		case "u": return "rgba(194, 94, 64, 0.4)"; // warm terracotta
+		case "ru": return "rgba(59, 89, 152, 0.45)"; // refined indigo
 		case "irv":
-		case "ira": return "gray";
-		case "i": return "rgb(0, 180, 240)";
-		case "na": return "rgb(143, 73, 40)";
-		default: return "gray";
+		case "ira": return "rgba(80, 90, 105, 0.45)"; // slate
+		case "i": return "rgba(37, 106, 115, 0.45)"; // subtle teal
+		case "na": return "rgba(120, 85, 55, 0.45)"; // warm cedar
+		default: return "rgba(63, 70, 84, 0.45)";
 	}
 }
 
 function updateStatusBoxes(word, entryText) {
 	const statusBox = document.getElementById("status-box");
 	toggleDisplayNone(statusBox, false);
+	statusBox.classList.remove("status-correct", "status-incorrect");
+	statusBox.style.background = "";
 
 	if (word.conjugation.validAnswers.some((e) => e === entryText)) {
-		statusBox.style.background = "green";
+		statusBox.classList.add("status-correct");
 		const subConjugationForm = getSubConjugationForm(word, entryText);
-		document.getElementById("status-text").innerHTML = `Correct${
+		document.getElementById("status-text").innerHTML = `<span class="status-badge-correct">✓ Correct</span>${
 			subConjugationForm != null
 				? '<span class="sub-conjugation-indicator">(' + escapeHtml(subConjugationForm) + ")</span>"
 				: ""
-		}<br>${escapeHtml(entryText)} ○`;
+		}<div class="status-answer-line">${escapeHtml(entryText)} <span class="status-mark-correct">○</span></div>`;
 	} else {
+		statusBox.classList.add("status-incorrect");
 		document.getElementById("verb-box").style.background = typeToWordBoxColor(word.wordJSON.type);
 		toggleBackgroundNone(document.getElementById("verb-box"), false);
 		changeVerbBoxFontColor("white");
-		document.getElementById("verb-type").textContent = wordTypeToDisplayText(word.wordJSON.type);
+		setVerbTypeText(wordTypeToDisplayText(word.wordJSON.type));
 
-		statusBox.style.background = "rgb(218, 5, 5)";
 		document.getElementById("status-text").innerHTML =
-			(entryText === "" ? "_" : escapeHtml(entryText)) +
-			" ×<br>" +
-			escapeHtml(word.conjugation.validAnswers[0]) +
-			" ○";
+			`<div class="status-user-answer">${entryText === "" ? "—" : escapeHtml(entryText)} <span class="status-mark-wrong">×</span></div>` +
+			`<div class="status-expected-answer">${escapeHtml(word.conjugation.validAnswers[0])} <span class="status-mark-correct">○</span></div>`;
 	}
 }
 
@@ -746,7 +758,7 @@ class ConjugationApp {
 
 		document.getElementById("verb-text").textContent = challenge.prompt;
 		document.getElementById("translation").textContent = challenge.engMeaning;
-		document.getElementById("verb-type").textContent = `Base : ${challenge.dictForm}`;
+		setVerbTypeText(`Base : ${challenge.dictForm}`);
 		document.getElementById("conjugation-inquery-text").innerHTML =
 			'<div class="conjugation-inquery"><span class="inquery-tag form-tag">Reconnaissance Dokkai (Touches 1 - 4)</span></div>';
 

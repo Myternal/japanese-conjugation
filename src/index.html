@@ -3,10 +3,10 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Dojo Réflexe - Japanese Conjugation Practice</title>
-        <meta name="description" content="Dojo d'entraînement réflexe pour la conjugaison et la reconnaissance rapide en japonais.">
-        <meta property="og:title" content="Dojo Réflexe - Japanese Conjugation">
-        <meta property="og:description" content="Automatise tes réflexes de conjugaison et de décodage pour le Dokkai !">
+        <title>Katsuyō - Japanese Conjugation Practice</title>
+        <meta name="description" content="Katsuyō (活用) : Entraînement et automatisation des réflexes de conjugaison en japonais (JLPT N5-N2).">
+        <meta property="og:title" content="Katsuyō - Japanese Conjugation Practice">
+        <meta property="og:description" content="Automatise tes réflexes de conjugaison et de décodage rapide pour le japonais et le Dokkai.">
         <meta property="og:type" content="website" />
         <meta property="og:image" content="./streamlined_screenshot.png">
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,17 +20,23 @@
     </head>
     <body>
     <div id="toppest-container" class="display-none">
-        <h1>Dojo Réflexe 日本語</h1>
+        <header id="app-header">
+            <h1>Katsuyō</h1>
+        </header>
 
         <!-- Mode Selector Bar -->
-        <div id="mode-bar">
-            <button class="mode-btn active" data-mode="classic" id="btn-mode-classic" type="button">Libre</button>
-            <button class="mode-btn" data-mode="sprint" id="btn-mode-sprint" type="button">Sprint 60s</button>
-            <button class="mode-btn" data-mode="dokkai" id="btn-mode-dokkai" type="button">Dokkai Flash</button>
-            <button class="mode-btn" data-mode="survival" id="btn-mode-survival" type="button">Survie</button>
-            <button id="sound-toggle-btn" type="button" title="Activer / Couper le son" aria-label="Toggle Sound">Son : ON</button>
-            <span id="cloud-status-indicator" class="hud-badge" title="Statut Cloud">Local</span>
-        </div>
+        <nav id="mode-bar" aria-label="Modes d'entraînement">
+            <div class="mode-btn-group">
+                <button class="mode-btn active" data-mode="classic" id="btn-mode-classic" type="button">Libre</button>
+                <button class="mode-btn" data-mode="sprint" id="btn-mode-sprint" type="button">Sprint 60s</button>
+                <button class="mode-btn" data-mode="dokkai" id="btn-mode-dokkai" type="button">Dokkai Flash</button>
+                <button class="mode-btn" data-mode="survival" id="btn-mode-survival" type="button">Survie</button>
+            </div>
+            <div class="mode-aux-group">
+                <button id="sound-toggle-btn" type="button" title="Activer / Couper le son" aria-label="Toggle Sound">Son : ON</button>
+                <span id="cloud-status-indicator" class="hud-badge" title="Statut Cloud">Local</span>
+            </div>
+        </nav>
 
         <div id="top-container">
             <div id="main-view">
@@ -157,7 +163,7 @@
                             <div id="cloud-connect-box">
                                 <div class="sync-field">
                                     <label for="gist-token-input">Token GitHub (permission <code>gist</code>) :</label>
-                                    <a href="https://github.com/settings/tokens/new?description=Dojo+Reflexe+Sync&scopes=gist" target="_blank" rel="noopener noreferrer" class="token-helper-link">Générer un token GitHub (permission gist pré-cochée)</a>
+                                    <a href="https://github.com/settings/tokens/new?description=Katsuyo+Sync&scopes=gist" target="_blank" rel="noopener noreferrer" class="token-helper-link">Générer un token GitHub (permission gist pré-cochée)</a>
                                     <input type="password" id="gist-token-input" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off">
                                 </div>
                                 <div class="sync-actions sync-actions-mt">
