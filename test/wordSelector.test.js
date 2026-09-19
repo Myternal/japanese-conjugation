@@ -9,7 +9,6 @@ import {
 	setAllProbabilitiesToValue,
 	equalizeProbabilities,
 	updateProbabilities,
-	updateProbabilites,
 	createWordList,
 	pickRandomWord,
 } from "../src/engine/wordSelector.js";

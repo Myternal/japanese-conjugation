@@ -146,5 +146,3 @@ export function pickRandomWord(wordList) {
 	}
 }
 
-// Backward compatibility alias
-export const updateProbabilites = updateProbabilities;

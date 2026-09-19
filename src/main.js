@@ -24,12 +24,7 @@ import {
 	updateProbabilities,
 } from "./engine/wordSelector.js";
 import { toggleDisplayNone, toggleBackgroundNone, escapeHtml } from "./utils.js";
-import {
-	getAllConjugations,
-	toKanjiPlusHiragana,
-	toHiragana,
-	dropFinalLetter,
-} from "./engine/conjugator.js";
+import { toKanjiPlusHiragana, toHiragana, dropFinalLetter } from "./engine/conjugator.js";
 import { sfx } from "./engine/soundEffects.js";
 import { GAME_MODES, SessionManager } from "./engine/gameModes.js";
 import { generateDokkaiChallenge } from "./engine/deconjugator.js";
@@ -41,8 +36,6 @@ import {
 import {
 	generateSyncUrl,
 	checkUrlForSyncImport,
-	pushToGitHubGist,
-	pullFromGitHubGist,
 	autoConnectGitHub,
 	disconnectGitHub,
 	isCloudConnected,
