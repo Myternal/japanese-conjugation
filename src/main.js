@@ -895,6 +895,31 @@ class ConjugationApp {
 			return;
 		}
 
+		// 2. Options view key handling: Escape exits options menu
+		const optionsView = document.getElementById("options-view");
+		if (optionsView && !optionsView.classList.contains("display-none")) {
+			if (isEscape) {
+				e.preventDefault();
+				const backBtn = document.getElementById("back-button");
+				if (backBtn && !backBtn.disabled) {
+					this.backButtonClicked(e);
+				} else {
+					try {
+						const saved = JSON.parse(localStorage.getItem("settings") || "{}");
+						this.state.settings = Object.assign(this.state.settings, saved);
+					} catch (err) {}
+					toggleDisplayNone(document.getElementById("options-view"), true);
+					toggleDisplayNone(document.getElementById("donation-section"), true);
+					toggleDisplayNone(document.getElementById("main-view"), false);
+					if (this.session && this.session.mode === GAME_MODES.SPRINT) {
+						this.session.resumeSprint();
+					}
+					this.loadMainView();
+				}
+			}
+			return;
+		}
+
 		// 2. Number keys 1-4 for Dokkai Flash mode (standard, numpad, and AZERTY laptop row)
 		if (
 			this.session.mode === GAME_MODES.DOKKAI &&
@@ -1046,7 +1071,9 @@ class ConjugationApp {
 	}
 
 	backButtonClicked(e) {
-		e.preventDefault();
+		if (e && typeof e.preventDefault === "function") {
+			e.preventDefault();
+		}
 
 		insertSettingsFromUi(this.state.settings);
 		localStorage.setItem("settings", JSON.stringify(this.state.settings));
