@@ -605,9 +605,6 @@ export function convertMaxScoreObjectsToV2(maxScoreObjects) {
 	return maxScoreObjectsV2;
 }
 
-export const showEmojis = function (show) {
-	// Emojis removed from UI to optimize focus & learning speed
-};
 
 export const showStreak = function (show) {
 	document.querySelectorAll(".streak").forEach((s) => {
@@ -787,7 +784,7 @@ export function getVisibleConjugationSettings(allSettings) {
 	}
 
 	if (!visibleSettings.adjective) {
-		// Remove all adjective settings (expect the base ["adjective": false] setting)
+		// Remove all adjective settings (except the base ["adjective": false] setting)
 		const adjectiveRegex = /^adjective.+/;
 		for (const settingName of Object.keys(visibleSettings)) {
 			if (adjectiveRegex.test(settingName)) {

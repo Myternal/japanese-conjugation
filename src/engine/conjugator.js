@@ -401,7 +401,7 @@ export function irregularVerbConjugation(hiraganaVerb, affirmative, polite, conj
 	} else if (Array.isArray(conjugatedSuffix)) {
 		return conjugatedSuffix.map((suffix) => prefix + suffix);
 	}
-	return "Error";
+	return null;
 }
 
 // Irregular Adjectives
@@ -582,11 +582,9 @@ export const conjugationFunctions = {
 			if (type === "u") {
 				const finalChar = baseVerbText.charAt(baseVerbText.length - 1);
 				const root = dropFinalLetter(baseVerbText) + changeUtoA(finalChar);
-				if (finalChar === "す") {
-					roots.push(root + "せられ");
-				} else {
-					roots.push(root + "せられ");
-					roots.push(root + "され"); // short form
+				roots.push(root + "せられ");
+				if (finalChar !== "す") {
+					roots.push(root + "され"); // short form (not applicable to す-verbs)
 				}
 			} else if (type === "ru") {
 				roots.push(dropFinalLetter(baseVerbText) + "させられ");

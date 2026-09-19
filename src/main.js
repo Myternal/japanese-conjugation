@@ -174,7 +174,7 @@ function addToScore(amount = 1, maxScoreObjects, maxScoreIndex) {
 	const maxVal = parseInt(max?.textContent?.trim() || "0", 10) || 0;
 
 	if (maxVal <= currentVal) {
-		const newAmount = maxVal + amount;
+		const newAmount = currentVal + amount;
 		max.textContent = newAmount;
 		if (!document.getElementById("max-streak").classList.contains("display-none")) {
 			max.classList.remove("grow-animation");
@@ -584,9 +584,9 @@ class ConjugationApp {
 			btn.classList.toggle("active", btn.getAttribute("data-level") === level);
 		});
 
-		if (this.state) {
-			this.state.wordsRecentlySeenQueue = [];
-		}
+		if (!this.state) return;
+
+		this.state.wordsRecentlySeenQueue = [];
 		const rawVocab = getVocabObjectForLevel(level, this.customWords);
 		this.state.completeWordList = createWordList(rawVocab);
 		this.applySettingsUpdateWordList();
@@ -1065,7 +1065,9 @@ class ConjugationApp {
 	}
 
 	initState() {
-		this.state = {};
+		this.state = {
+			activeScreen: SCREENS.question,
+		};
 		const rawVocab = getVocabObjectForLevel(this.selectedLevel, this.customWords);
 		this.state.completeWordList = createWordList(rawVocab);
 

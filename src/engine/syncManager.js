@@ -178,7 +178,12 @@ export async function pullFromGitHubGist(token, gistId) {
 		throw new Error("Fichier de progression non trouvé dans ce Gist");
 	}
 
-	const remotePayload = JSON.parse(file.content);
+	let remotePayload;
+	try {
+		remotePayload = JSON.parse(file.content);
+	} catch (e) {
+		throw new Error("Contenu du Gist invalide (JSON malformé)");
+	}
 	applyProgressPayload(remotePayload);
 	localStorage.setItem("dojoGistLastSync", Date.now().toString());
 	return remotePayload;
