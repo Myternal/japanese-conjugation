@@ -396,8 +396,7 @@ h2 {
 }
 
 .hide-furigana .rt,
-.display-none,
-.hide-emojis .inquery-emoji {
+.display-none {
 	display: none !important;
 }
 
@@ -429,16 +428,54 @@ hr {
 }
 
 .conjugation-inquery {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.45rem;
+	flex-wrap: wrap;
+}
+
+.inquery-tag {
 	display: inline-block;
+	font-size: 0.88rem;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	padding: 0.22rem 0.65rem;
+	border-radius: 6px;
+	background: #333230;
+	border: 1px solid #4a4946;
+	color: #e6e6e6;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-.inquery-emoji {
-	font-size: 0.7rem;
-	line-height: 1.1;
+.inquery-tag.form-tag {
+	background: #2a2927;
+	border-color: #55534f;
+	color: #fff;
 }
 
-.inquery-text {
-	line-height: 1.1;
+.inquery-tag.polarity-negative {
+	background: rgba(220, 53, 69, 0.18);
+	border-color: rgba(220, 53, 69, 0.4);
+	color: #ff8585;
+}
+
+.inquery-tag.polarity-affirmative {
+	background: rgba(40, 167, 69, 0.15);
+	border-color: rgba(40, 167, 69, 0.35);
+	color: #81c784;
+}
+
+.inquery-tag.politeness-polite {
+	background: rgba(33, 150, 243, 0.15);
+	border-color: rgba(33, 150, 243, 0.35);
+	color: #90caf9;
+}
+
+.inquery-tag.politeness-plain {
+	background: rgba(158, 158, 158, 0.15);
+	border-color: rgba(158, 158, 158, 0.3);
+	color: #ccc;
 }
 
 .advanced-section {
@@ -541,3 +578,425 @@ On larger screens, we allow verb-type and status-container to always take up scr
 		margin-top: 1rem;
 	}
 }
+
+/* =========================================
+   DOJO ARCADE STYLES
+   ========================================= */
+
+#mode-bar {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 0.35rem;
+	flex-wrap: wrap;
+	margin: 0.6rem auto;
+	max-width: 600px;
+	padding: 0 0.4rem;
+}
+
+.mode-btn {
+	background: #333230;
+	color: #d1d0ce;
+	border: 1px solid #4f4e4b;
+	border-radius: 20px;
+	padding: 0.35rem 0.75rem;
+	font-size: 0.8rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.15s ease;
+	font-family: inherit;
+}
+
+.mode-btn:hover {
+	background: #444340;
+	color: #fff;
+	border-color: #777;
+}
+
+.mode-btn.active {
+	background: #ffc439;
+	color: #1a1918;
+	border-color: #ffc439;
+	box-shadow: 0 0 10px rgba(255, 196, 57, 0.4);
+}
+
+#sound-toggle-btn {
+	background: #333230;
+	color: #d1d0ce;
+	border: 1px solid #4f4e4b;
+	border-radius: 20px;
+	padding: 0.35rem 0.65rem;
+	font-size: 0.78rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.15s ease;
+	font-family: inherit;
+}
+
+#sound-toggle-btn:hover {
+	background: #444340;
+	color: #fff;
+	border-color: #777;
+}
+
+#hud-container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 0.8rem;
+	margin-top: 0.3rem;
+	margin-bottom: 0.2rem;
+	font-size: 0.82rem;
+	font-weight: 600;
+}
+
+.hud-badge {
+	background: #222120;
+	border: 1px solid #42413e;
+	border-radius: 12px;
+	padding: 0.2rem 0.6rem;
+	color: #e0e0e0;
+}
+
+.speed-fast {
+	color: #00e676 !important;
+	border-color: #00e676 !important;
+}
+
+.speed-fluent {
+	color: #ffeb3b !important;
+	border-color: #ffeb3b !important;
+}
+
+.speed-slow {
+	color: #ff7043 !important;
+	border-color: #ff7043 !important;
+}
+
+/* Dokkai Flash Multiple Choice */
+#dokkai-options-container {
+	display: flex;
+	flex-direction: column;
+	gap: 0.45rem;
+	margin: 0.8rem 0;
+	padding: 0 0.5rem;
+}
+
+.dokkai-row {
+	display: flex;
+	gap: 0.45rem;
+	width: 100%;
+}
+
+.dokkai-btn {
+	flex: 1;
+	background: #383735;
+	border: 1px solid #52514e;
+	border-radius: 8px;
+	color: #f0f0f0;
+	padding: 0.6rem 0.5rem;
+	display: flex;
+	align-items: center;
+	text-align: left;
+	cursor: pointer;
+	font-size: 0.78rem;
+	font-family: inherit;
+	transition: all 0.12s ease;
+}
+
+.dokkai-btn:hover {
+	background: #4a4946;
+	border-color: #888;
+}
+
+.dokkai-key {
+	background: #252423;
+	border: 1px solid #555;
+	color: #ffc439;
+	font-weight: 700;
+	font-size: 0.75rem;
+	border-radius: 4px;
+	padding: 2px 6px;
+	margin-right: 8px;
+	flex-shrink: 0;
+}
+
+.dokkai-label {
+	line-height: 1.25;
+}
+
+.dokkai-btn.correct-choice {
+	background: #2e7d32 !important;
+	border-color: #66bb6a !important;
+	color: #fff !important;
+}
+
+.dokkai-btn.wrong-choice {
+	background: #c62828 !important;
+	border-color: #ef5350 !important;
+	color: #fff !important;
+}
+
+/* Session Recap Modal */
+.modal-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(10, 10, 10, 0.82);
+	backdrop-filter: blur(3px);
+	z-index: 1000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.modal-content {
+	background: #2c2b29;
+	border: 1px solid #555;
+	border-radius: 12px;
+	width: 90%;
+	max-width: 460px;
+	padding: 1.2rem;
+	color: #f0f0f0;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+	animation: modal-pop 0.2s ease-out;
+}
+
+@keyframes modal-pop {
+	from { transform: scale(0.92); opacity: 0; }
+	to { transform: scale(1); opacity: 1; }
+}
+
+.modal-content h2 {
+	margin-top: 0;
+	text-align: center;
+	font-size: 1.25rem;
+	color: #ffc439;
+}
+
+.modal-stats-grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 0.5rem;
+	margin: 1rem 0;
+}
+
+.stat-card {
+	background: #383734;
+	border: 1px solid #4a4946;
+	border-radius: 8px;
+	padding: 0.6rem 0.3rem;
+	text-align: center;
+}
+
+.stat-val {
+	font-size: 1.2rem;
+	font-weight: 700;
+	color: #ffc439;
+}
+
+.stat-lbl {
+	font-size: 0.68rem;
+	color: #aaa;
+	text-transform: uppercase;
+	margin-top: 0.2rem;
+}
+
+#mistakes-section {
+	margin-top: 0.8rem;
+	border-top: 1px solid #444;
+	padding-top: 0.6rem;
+}
+
+#mistakes-section h3 {
+	font-size: 0.9rem;
+	margin: 0.2rem 0;
+	color: #ff8a80;
+}
+
+#mistakes-list {
+	max-height: 120px;
+	overflow-y: auto;
+	background: #1e1d1c;
+	border: 1px solid #3a3937;
+	border-radius: 6px;
+	padding: 0.4rem;
+	font-size: 0.78rem;
+	margin: 0.5rem 0;
+}
+
+.mistake-entry {
+	padding: 0.25rem 0;
+	border-bottom: 1px solid #2d2c2a;
+}
+.mistake-entry:last-child {
+	border-bottom: none;
+}
+
+.export-row {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin-top: 0.4rem;
+}
+
+#copy-feedback {
+	font-size: 0.75rem;
+	color: #00e676;
+}
+
+.modal-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 0.5rem;
+	margin-top: 1.2rem;
+}
+
+.action-btn {
+	background: #474643;
+	border: 1px solid #5a5956;
+	color: #fff;
+	border-radius: 6px;
+	padding: 0.45rem 0.9rem;
+	font-size: 0.82rem;
+	font-weight: 600;
+	cursor: pointer;
+	font-family: inherit;
+	transition: background 0.15s ease;
+}
+
+.action-btn:hover {
+	background: #575653;
+}
+
+.primary-btn {
+	background: #ffc439;
+	border-color: #ffc439;
+	color: #1a1918;
+}
+
+.primary-btn:hover {
+	background: #ffd066;
+}
+
+/* Presets & Custom Vocab Box in Options */
+.options-section-box {
+	background: #353432;
+	border: 1px solid #4a4946;
+	border-radius: 8px;
+	padding: 0.8rem;
+	margin-bottom: 1rem;
+}
+
+.options-section-box h3 {
+	margin-top: 0;
+	margin-bottom: 0.5rem;
+	font-size: 0.95rem;
+	color: #ffc439;
+}
+
+.preset-buttons {
+	display: flex;
+	gap: 0.3rem;
+	flex-wrap: wrap;
+	margin-bottom: 0.8rem;
+}
+
+.preset-btn {
+	background: #272625;
+	border: 1px solid #4f4e4c;
+	color: #ddd;
+	padding: 0.35rem 0.6rem;
+	font-size: 0.75rem;
+	font-weight: 600;
+	border-radius: 4px;
+	cursor: pointer;
+	font-family: inherit;
+	transition: all 0.12s ease;
+}
+
+.preset-btn:hover {
+	background: #3d3c39;
+}
+
+.preset-btn.active {
+	background: #ffc439;
+	color: #1a1918;
+	border-color: #ffc439;
+}
+
+.custom-vocab-container {
+	border-top: 1px solid #444;
+	padding-top: 0.6rem;
+	font-size: 0.8rem;
+}
+
+.custom-vocab-container textarea {
+	width: 100%;
+	box-sizing: border-box;
+	background: #201f1e;
+	border: 1px solid #444;
+	border-radius: 6px;
+	color: #fff;
+	padding: 0.4rem;
+	font-family: inherit;
+	font-size: 0.8rem;
+	resize: vertical;
+	margin-top: 0.3rem;
+	margin-bottom: 0.4rem;
+}
+
+.custom-vocab-actions {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+#custom-vocab-status {
+	font-size: 0.75rem;
+	color: #00e676;
+}
+
+/* Sync Section */
+.sync-sub-section {
+	margin: 0.5rem 0;
+}
+
+.sync-sub-section h4 {
+	margin: 0.2rem 0;
+	font-size: 0.82rem;
+	color: #ffc439;
+}
+
+.sync-field {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+	margin: 0.4rem 0;
+	font-size: 0.76rem;
+}
+
+.sync-field input {
+	background: #201f1e;
+	border: 1px solid #555;
+	border-radius: 4px;
+	color: #fff;
+	padding: 0.35rem;
+	font-family: monospace;
+	font-size: 0.8rem;
+}
+
+.sync-actions {
+	display: flex;
+	gap: 0.4rem;
+	flex-wrap: wrap;
+	align-items: center;
+}
+
+#gist-status-msg {
+	font-weight: 600;
+}
+
+

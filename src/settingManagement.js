@@ -460,6 +460,15 @@ const questionRemoveFilters = {
 		verbcausativepassive: function (word) {
 			return word.conjugation.type !== CONJUGATION_TYPES.causativePassive;
 		},
+		verbba: function (word) {
+			return word.conjugation.type !== CONJUGATION_TYPES.ba;
+		},
+		verbtara: function (word) {
+			return word.conjugation.type !== CONJUGATION_TYPES.tara;
+		},
+		verbtai: function (word) {
+			return word.conjugation.type !== CONJUGATION_TYPES.tai;
+		},
 
 		verbaffirmative: function (word) {
 			return word.conjugation.affirmative !== true;
@@ -494,6 +503,12 @@ const questionRemoveFilters = {
 		},
 		adjectiveadverb: function (word) {
 			return word.conjugation.type !== CONJUGATION_TYPES.adverb;
+		},
+		adjectiveba: function (word) {
+			return word.conjugation.type !== CONJUGATION_TYPES.ba;
+		},
+		adjectivetara: function (word) {
+			return word.conjugation.type !== CONJUGATION_TYPES.tara;
 		},
 
 		adjectiveaffirmative: function (word) {
@@ -575,9 +590,7 @@ export function convertMaxScoreObjectsToV2(maxScoreObjects) {
 }
 
 export const showEmojis = function (show) {
-	document.getElementById("conjugation-inquery-text").className = show
-		? ""
-		: "hide-emojis";
+	// Emojis removed from UI to optimize focus & learning speed
 };
 
 export const showStreak = function (show) {

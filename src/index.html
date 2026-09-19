@@ -1,17 +1,17 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Japanese Conjugation Practice</title>
-        <meta name="description" content="Learn how to conjugate Japanese verbs and adjectives! Includes many forms: past tense, te form, passive, causative, potential, and more.">
-        <meta property="og:title" content="Japanese Conjugation Practice">
-        <meta property="og:description" content="Learn how to conjugate Japanese verbs and adjectives!">
+        <title>Dojo Réflexe - Japanese Conjugation Practice</title>
+        <meta name="description" content="Dojo d'entraînement réflexe pour la conjugaison et la reconnaissance rapide en japonais.">
+        <meta property="og:title" content="Dojo Réflexe - Japanese Conjugation">
+        <meta property="og:description" content="Automatise tes réflexes de conjugaison et de décodage pour le Dokkai !">
         <meta property="og:type" content="website" />
         <meta property="og:image" content="./streamlined_screenshot.png">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&family=Open+Sans&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="style.css">
         <link rel="icon" href="./favicon.ico">
         <link rel="apple-touch-icon" href="./apple-touch-icon.png">
@@ -20,51 +20,152 @@
     </head>
     <body>
     <div id="toppest-container" class="display-none">
-        <h1>Japanese Conjugation Practice</h1>
+        <h1>Dojo Réflexe 日本語</h1>
+
+        <!-- Mode Selector Bar -->
+        <div id="mode-bar">
+            <button class="mode-btn active" data-mode="classic" id="btn-mode-classic" type="button">Libre</button>
+            <button class="mode-btn" data-mode="sprint" id="btn-mode-sprint" type="button">Sprint 60s</button>
+            <button class="mode-btn" data-mode="dokkai" id="btn-mode-dokkai" type="button">Dokkai Flash</button>
+            <button class="mode-btn" data-mode="survival" id="btn-mode-survival" type="button">Survie</button>
+            <button id="sound-toggle-btn" type="button" title="Activer / Couper le son" aria-label="Toggle Sound">Son : ON</button>
+            <span id="cloud-status-indicator" class="hud-badge" title="Statut Cloud">Local</span>
+        </div>
+
         <div id="top-container">
-            <div id = "main-view">
+            <div id="main-view">
                 <div id="streak-container">
-                        <div id="current-streak" class="streak">
-                            <p>Current Streak</p>
-                            <p id="current-streak-text">0</p>
-                        </div>
-                        <div id="max-streak" class="streak">
-                            <p>Max Streak</p>
-                            <p id="max-streak-text"> </p>
-                        </div>
+                    <div id="current-streak" class="streak">
+                        <p>Current Streak</p>
+                        <p id="current-streak-text">0</p>
                     </div>
-                    <div id="verb-container">
-                        <div id="verb-box">
-                            <p id="verb-text" lang="ja"></p>
-                            <p id="translation"></p>
-                            <p id="verb-type"></p>
-                        </div>
+                    <div id="max-streak" class="streak">
+                        <p>Max Streak</p>
+                        <p id="max-streak-text"> </p>
                     </div>
-                    <div id="conjugation-inquery-container">
-                        <p id="conjugation-inquery-text"></p>
+                </div>
+
+                <!-- HUD Indicator (Timer, Reaction Speed, Combo) -->
+                <div id="hud-container">
+                    <div id="timer-badge" class="hud-badge display-none">Temps : <span id="timer-text">60s</span></div>
+                    <div id="reaction-badge" class="hud-badge">Vitesse : <span id="reaction-text">--s</span></div>
+                    <div id="combo-badge" class="hud-badge display-none">Combo : <span id="combo-text">0</span></div>
+                </div>
+
+                <div id="verb-container">
+                    <div id="verb-box">
+                        <p id="verb-text" lang="ja"></p>
+                        <p id="translation"></p>
+                        <p id="verb-type"></p>
                     </div>
-                    <div id="status-container">
-                        <div id="status-box" class="display-none">
-                            <p id="status-text">Correct</p>
-                        </div>
+                </div>
+
+                <div id="conjugation-inquery-container">
+                    <p id="conjugation-inquery-text"></p>
+                </div>
+
+                <div id="status-container">
+                    <div id="status-box" class="display-none">
+                        <p id="status-text">Correct</p>
                     </div>
-                    <div id="input-container">
-                        <div id="input-tooltip" class="tooltip">Invalid characters. Only Japanese kana and kanji are valid.</div>
-                        <input id="main-text-input" type="text" maxlength="30" aria-label="Answer">
+                </div>
+
+                <!-- Classic Direct Input Container -->
+                <div id="input-container">
+                    <div id="input-tooltip" class="tooltip">Invalid characters. Only Japanese kana and kanji are valid.</div>
+                    <input id="main-text-input" type="text" maxlength="30" aria-label="Answer" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                </div>
+
+                <!-- Dokkai Flash Multiple Choice Container -->
+                <div id="dokkai-options-container" class="display-none">
+                    <div class="dokkai-row">
+                        <button type="button" class="dokkai-btn" data-index="0"><span class="dokkai-key">1</span><span class="dokkai-label"></span></button>
+                        <button type="button" class="dokkai-btn" data-index="1"><span class="dokkai-key">2</span><span class="dokkai-label"></span></button>
                     </div>
-                    <div id="settings-container">
-                        <div id="settings-child-container">
-                            <table id="settings-table">
-                                <td style="width:29%"></td>
-                                <td style="width:42%"id="press-any-key-text" class="display-none">Press Enter/Return to continue</td>
-                                <td style="width:29%"><button id="options-button">Options ⚙️</button></td>
-                            </table>
-                        </div>
+                    <div class="dokkai-row">
+                        <button type="button" class="dokkai-btn" data-index="2"><span class="dokkai-key">3</span><span class="dokkai-label"></span></button>
+                        <button type="button" class="dokkai-btn" data-index="3"><span class="dokkai-key">4</span><span class="dokkai-label"></span></button>
                     </div>
+                </div>
+
+                <div id="settings-container">
+                    <div id="settings-child-container">
+                        <table id="settings-table">
+                            <td style="width:29%"></td>
+                            <td style="width:42%" id="press-any-key-text" class="display-none">Press Enter/Return to continue</td>
+                            <td style="width:29%"><button id="options-button" type="button">Options</button></td>
+                        </table>
+                    </div>
+                </div>
             </div>
+
+            <!-- Options View -->
             <div id="options-view" class="display-none">
-                <h2>Options</h2>
+                <h2>Options & Presets</h2>
                 <form id="options-form">
+                    <!-- JLPT Presets & Custom Import -->
+                    <div class="options-section-box">
+                        <h3>Niveaux JLPT & Vocabulaire</h3>
+                        <div class="preset-buttons">
+                            <button type="button" class="preset-btn" data-level="n5">N5 Débutant</button>
+                            <button type="button" class="preset-btn" data-level="n4">N4 Fondations</button>
+                            <button type="button" class="preset-btn" data-level="n3">N3 Pivot</button>
+                            <button type="button" class="preset-btn" data-level="n2">N2 Avancé</button>
+                            <button type="button" class="preset-btn active" data-level="all">Tous</button>
+                        </div>
+                        <div class="custom-vocab-container">
+                            <label for="custom-vocab-input"><strong>Importer une liste personnalisée (Satori Reader / Anki) :</strong></label>
+                            <textarea id="custom-vocab-input" rows="2" placeholder="Colle ici tes verbes séparés par des virgules ou retours à la ligne (ex: 食べる, 飲む, 落ちる, 落とす)"></textarea>
+                            <div class="custom-vocab-actions">
+                                <button type="button" id="apply-custom-vocab-btn" class="action-btn">Charger cette liste</button>
+                                <span id="custom-vocab-status"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cloud Sync & Multi-Appareils -->
+                    <div class="options-section-box">
+                        <h3>Synchronisation multi-appareils</h3>
+                        
+                        <!-- 1. Instant Transfer Link / QR Code -->
+                        <div class="sync-sub-section">
+                            <h4>1. Transfert rapide (Lien & QR Code)</h4>
+                            <p class="sub-text">Scanne ce QR code avec ton smartphone pour importer immédiatement ta progression :</p>
+                            <div id="qr-code-container" style="text-align: center; margin: 0.5rem 0;">
+                                <img id="qr-code-img" alt="QR Code de synchronisation" style="display:none; max-width: 160px; border-radius: 8px; border: 4px solid #fff; margin: auto;">
+                            </div>
+                            <div class="sync-actions">
+                                <button type="button" id="btn-show-qr" class="action-btn">Afficher le QR Code</button>
+                                <button type="button" id="btn-copy-sync-url" class="action-btn">Copier le lien de synchronisation</button>
+                                <span id="sync-url-feedback" class="display-none">Lien copié dans le presse-papier</span>
+                            </div>
+                        </div>
+
+                        <hr style="border: 0; border-top: 1px solid #444; margin: 0.8rem 0;">
+
+                        <!-- 2. GitHub Gist Cloud Sync -->
+                        <div class="sync-sub-section">
+                            <h4>2. Synchronisation Cloud (GitHub Gist)</h4>
+                            <p class="sub-text">Connecte ton compte GitHub pour synchroniser automatiquement toutes tes sessions, streaks et réglages :</p>
+                            <div id="cloud-connected-box" class="display-none" style="margin: 0.5rem 0; padding: 0.5rem; background: #1b3320; border: 1px solid #2e7d32; border-radius: 6px;">
+                                <div style="color: #00e676; font-weight: bold; font-size: 0.8rem;">Statut : Cloud activé</div>
+                                <div style="font-size: 0.72rem; color: #ccc; margin: 0.2rem 0;">Chaque session est automatiquement synchronisée avec ton compte GitHub.</div>
+                                <button type="button" id="btn-cloud-disconnect" class="action-btn" style="margin-top: 0.4rem; padding: 0.2rem 0.5rem; font-size: 0.75rem;">Se déconnecter du Cloud</button>
+                            </div>
+                            <div id="cloud-connect-box">
+                                <div class="sync-field">
+                                    <label for="gist-token-input">Token GitHub (permission <code>gist</code>) :</label>
+                                    <a href="https://github.com/settings/tokens/new?description=Dojo+Reflexe+Sync&scopes=gist" target="_blank" rel="noopener noreferrer" style="color: #64b5f6; font-size: 0.75rem; text-decoration: underline; display: inline-block; margin-bottom: 0.3rem;">Générer un token GitHub (permission gist pré-cochée)</a>
+                                    <input type="password" id="gist-token-input" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off">
+                                </div>
+                                <div class="sync-actions" style="margin-top: 0.5rem;">
+                                    <button type="button" id="btn-cloud-connect" class="action-btn primary-btn">Activer la synchronisation Cloud</button>
+                                </div>
+                            </div>
+                            <div id="gist-status-msg" style="font-size: 0.75rem; margin-top: 0.4rem;"></div>
+                        </div>
+                    </div>
+
                     <div id="non-conjugation-settings">
                         <div class="option-row">
                             <div class="sub-option-row"><input id="furigana-checkbox" type="checkbox" name="furigana"><label for="furigana-checkbox">Show furigana above kanji</label></div>
@@ -80,9 +181,9 @@
                                 <div class="sub-option-row"><input id="translation-after-radio" type="radio" name="translationTiming" value="after"><label for="translation-after-radio">only after answering</label></div>
                             </div>
                         </div>
-                        <div class="option-row"><input id="emoji-checkbox" type="checkbox" name="emoji"><label for="emoji-checkbox">Show emojis above conjugation types</label></div>
                         <div class="option-row"><input id="streak-checkbox" type="checkbox" name="streak"><label for="streak-checkbox">Show current/max streak</label></div>
                     </div>
+
                     <div id="conjugation-settings">
                         <hr>
                         <div id="verbs-h3-container">
@@ -93,30 +194,33 @@
                             <table style="width:100%" class="options-group">
                                 <tr>
                                     <td><input id="verbu-checkbox" type="checkbox" name="verbu"><label for="verbu-checkbox">う-verbs</label></td>
-                                    <td rowspan="3"class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
+                                    <td rowspan="3" class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
                                 </tr>
                                 <tr><td><input id="verbru-checkbox" type="checkbox" name="verbru"><label for="verbru-checkbox">る-verbs</label></td></tr>
                                 <tr><td><input id="verbirregular-checkbox" type="checkbox" name="verbirregular"><label for="verbirregular-checkbox">Irregular verbs</label></td></tr>
                             </table>
                             <hr>
                             <div id="verb-conjugation-type-group" class="options-group">
-                            <table style="width:100%" >
-                                <tr>
-                                    <td><input id="verbpresent-checkbox" type="checkbox" name="verbpresent" class="verb-has-variations"><label for="verbpresent-checkbox">Present tense</label></td>
-                                    <td rowspan="3"class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
-                                </tr>
-                                <tr><td><input id="verbpast-checkbox" type="checkbox" name="verbpast" class="verb-has-variations"><label for="verbpast-checkbox">Past tense</label></td></tr>
-                                <tr><td><input id="verbte-checkbox" type="checkbox" name="verbte"><label for="verbte-checkbox">て-form</label></td></tr>
-                                <tr><td><input id="verbvolitional-checkbox" type="checkbox" name="verbvolitional" class="verb-has-politeness"><label for="verbvolitional-checkbox">Volitional (~よう)</label></td></tr>
-                            </table>
-                            <div class="advanced-section">
-                                <div id="advanced-text">ADVANCED</div>
-                                <div class="advanced-option"><input id="verbpassive-checkbox" type="checkbox" name="verbpassive" class="verb-has-variations"><label for="verbpassive-checkbox">Passive (~られる)</label></div>
-                                <div class="advanced-option"><input id="verbcausative-checkbox" type="checkbox" name="verbcausative" class="verb-has-variations"><label for="verbcausative-checkbox">Causative (~させる)</label></div>
-                                <div class="advanced-option"><input id="verbcausativepassive-checkbox" type="checkbox" name="verbcausativepassive" class="verb-has-variations"><label for="verbcausativepassive-checkbox">Causative-Passive (~させられる)</label></div>
-                                <div class="advanced-option"><input id="verbpotential-checkbox" type="checkbox" name="verbpotential" class="verb-has-variations"><label for="verbpotential-checkbox">Potential (~られる/れる)</label></div>
-                                <div class="advanced-option"><input id="verbimperative-checkbox" type="checkbox" name="verbimperative"><label for="verbimperative-checkbox">Imperative (~ろ)</label></div>
-                            </div>
+                                <table style="width:100%">
+                                    <tr>
+                                        <td><input id="verbpresent-checkbox" type="checkbox" name="verbpresent" class="verb-has-variations"><label for="verbpresent-checkbox">Present tense</label></td>
+                                        <td rowspan="3" class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
+                                    </tr>
+                                    <tr><td><input id="verbpast-checkbox" type="checkbox" name="verbpast" class="verb-has-variations"><label for="verbpast-checkbox">Past tense</label></td></tr>
+                                    <tr><td><input id="verbte-checkbox" type="checkbox" name="verbte"><label for="verbte-checkbox">て-form</label></td></tr>
+                                    <tr><td><input id="verbvolitional-checkbox" type="checkbox" name="verbvolitional" class="verb-has-politeness"><label for="verbvolitional-checkbox">Volitional (~よう)</label></td></tr>
+                                    <tr><td><input id="verbba-checkbox" type="checkbox" name="verbba"><label for="verbba-checkbox">Conditionnel (~ば)</label></td></tr>
+                                    <tr><td><input id="verbtara-checkbox" type="checkbox" name="verbtara" class="verb-has-variations"><label for="verbtara-checkbox">Conditionnel (~たら)</label></td></tr>
+                                    <tr><td><input id="verbtai-checkbox" type="checkbox" name="verbtai" class="verb-has-variations"><label for="verbtai-checkbox">Désiratif (~たい)</label></td></tr>
+                                </table>
+                                <div class="advanced-section">
+                                    <div id="advanced-text">ADVANCED</div>
+                                    <div class="advanced-option"><input id="verbpassive-checkbox" type="checkbox" name="verbpassive" class="verb-has-variations"><label for="verbpassive-checkbox">Passive (~られる)</label></div>
+                                    <div class="advanced-option"><input id="verbcausative-checkbox" type="checkbox" name="verbcausative" class="verb-has-variations"><label for="verbcausative-checkbox">Causative (~させる)</label></div>
+                                    <div class="advanced-option"><input id="verbcausativepassive-checkbox" type="checkbox" name="verbcausativepassive" class="verb-has-variations"><label for="verbcausativepassive-checkbox">Causative-Passive (~させられる)</label></div>
+                                    <div class="advanced-option"><input id="verbpotential-checkbox" type="checkbox" name="verbpotential" class="verb-has-variations"><label for="verbpotential-checkbox">Potential (~られる/れる)</label></div>
+                                    <div class="advanced-option"><input id="verbimperative-checkbox" type="checkbox" name="verbimperative"><label for="verbimperative-checkbox">Imperative (~ろ)</label></div>
+                                </div>
                             </div>
                             <div id="verb-variations-container">
                                 <div class="options-group">
@@ -124,7 +228,7 @@
                                     <table style="width:100%">
                                         <tr>
                                             <td><input id="verbaffirmative-checkbox" type="checkbox" name="verbaffirmative"><label for="verbaffirmative-checkbox">Affirmative</label></td>
-                                            <td rowspan="2"class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
+                                            <td rowspan="2" class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
                                         </tr>
                                         <tr><td><input id="verbnegative-checkbox" type="checkbox" name="verbnegative"><label for="verbnegative-checkbox">Negative</label></td></tr>
                                     </table>
@@ -134,13 +238,14 @@
                                     <table style="width:100%">
                                         <tr>
                                             <td><input id="verbplain-checkbox" type="checkbox" name="verbplain"><label for="verbplain-checkbox">Plain</label></td>
-                                            <td rowspan="2"class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
+                                            <td rowspan="2" class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
                                         </tr>
                                         <tr><td><input id="verbpolite-checkbox" type="checkbox" name="verbpolite"><label for="verbpolite-checkbox">Polite</label></td></tr>
                                     </table>
                                 </div>
                             </div>
                         </div>
+
                         <div id="adjectives-h3-container">
                             <input id="adjectives-checkbox" type="checkbox" name="adjective"><label for="adjectives-checkbox"><h3>Adjectives</h3></label>
                         </div>
@@ -148,7 +253,7 @@
                             <table style="width:100%" class="options-group" id="adjective-type-group">
                                 <tr>
                                     <td><input id="adjectivei-checkbox" type="checkbox" name="adjectivei"><label for="adjectivei-checkbox">い-adjectives</label></td>
-                                    <td rowspan="3"class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
+                                    <td rowspan="3" class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
                                 </tr>
                                 <tr><td><input id="adjectivena-checkbox" type="checkbox" name="adjectivena"><label for="adjectivena-checkbox">な-adjectives</label></td></tr>
                                 <tr><td><input id="adjectiveirregular-checkbox" type="checkbox" name="adjectiveirregular"><label for="adjectiveirregular-checkbox">Irregular adjectives</label></td></tr>
@@ -157,48 +262,80 @@
                             <table style="width:100%" class="options-group" id="adjective-conjugation-type-group">
                                 <tr>
                                     <td><input id="adjectivepresent-checkbox" type="checkbox" name="adjectivepresent" class="adjective-has-variations"><label for="adjectivepresent-checkbox">Present tense</label></td>
-                                    <td rowspan="3"class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
+                                    <td rowspan="3" class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
                                 </tr>
                                 <tr><td><input id="adjectivepast-checkbox" type="checkbox" name="adjectivepast" class="adjective-has-variations"><label for="adjectivepast-checkbox">Past tense</label></td></tr>
-                                <tr><td><input id="adjectiveadverb-checkbox" type="checkbox" name="adjectiveadverb"><label for="adjectiveadverb-checkbox">Adverb</td></tr>
+                                <tr><td><input id="adjectiveadverb-checkbox" type="checkbox" name="adjectiveadverb"><label for="adjectiveadverb-checkbox">Adverb</label></td></tr>
+                                <tr><td><input id="adjectiveba-checkbox" type="checkbox" name="adjectiveba"><label for="adjectiveba-checkbox">Conditionnel (~ば)</label></td></tr>
+                                <tr><td><input id="adjectivetara-checkbox" type="checkbox" name="adjectivetara" class="adjective-has-variations"><label for="adjectivetara-checkbox">Conditionnel (~たら)</label></td></tr>
                             </table>
                             <div id="adjective-variations-container">
                                 <div class="options-group">
-                                <hr>
-                                <table style="width:100%">
-                                    <tr>
-                                        <td><input id="adjectiveaffirmative-checkbox" type="checkbox" name="adjectiveaffirmative"><label for="adjectiveaffirmative-checkbox">Affirmative</label></td>
-                                        <td rowspan="2"class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
-                                    </tr>
-                                    <tr><td><input id="adjectivenegative-checkbox" type="checkbox" name="adjectivenegative"><label for="adjectivenegative-checkbox">Negative</label></td></tr>
-                                </table>
+                                    <hr>
+                                    <table style="width:100%">
+                                        <tr>
+                                            <td><input id="adjectiveaffirmative-checkbox" type="checkbox" name="adjectiveaffirmative"><label for="adjectiveaffirmative-checkbox">Affirmative</label></td>
+                                            <td rowspan="2" class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
+                                        </tr>
+                                        <tr><td><input id="adjectivenegative-checkbox" type="checkbox" name="adjectivenegative"><label for="adjectivenegative-checkbox">Negative</label></td></tr>
+                                    </table>
                                 </div>
                                 <div class="options-group">
-                                <hr>
-                                <table style="width:100%">
-                                    <tr>
-                                        <td><input id="adjectiveplain-checkbox" type="checkbox" name="adjectiveplain"><label for="adjectiveplain-checkbox">Plain</label></td>
-                                        <td rowspan="2"class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
-                                    </tr>
-                                    <tr><td><input id="adjectivepolite-checkbox" type="checkbox" name="adjectivepolite"><label for="adjectivepolite-checkbox">Polite</label></td></tr>
-                                </table>
+                                    <hr>
+                                    <table style="width:100%">
+                                        <tr>
+                                            <td><input id="adjectiveplain-checkbox" type="checkbox" name="adjectiveplain"><label for="adjectiveplain-checkbox">Plain</label></td>
+                                            <td rowspan="2" class="settings-error-text display-none">*Must choose at least 1 option from this category</td>
+                                        </tr>
+                                        <tr><td><input id="adjectivepolite-checkbox" type="checkbox" name="adjectivepolite"><label for="adjectivepolite-checkbox">Polite</label></td></tr>
+                                    </table>
                                 </div>
                             </div>
                         </div>
                     </div>
+
                     <div id="back-button-container">
-                        <button type="submit" id="back-button">Back ↩</button>
+                        <button type="submit" id="back-button">Retour</button>
                     </div>    
                 </form>
             </div>
         </div>
+
+        <!-- Session Recap Modal -->
+        <div id="session-modal" class="modal-overlay display-none">
+            <div class="modal-content">
+                <h2 id="modal-title">Session terminée</h2>
+                <div class="modal-stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-val" id="stat-score">0 / 0</div>
+                        <div class="stat-lbl">Précision</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-val" id="stat-speed">0.0s</div>
+                        <div class="stat-lbl">Vitesse moy.</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-val" id="stat-streak">0</div>
+                        <div class="stat-lbl">Meilleur Combo</div>
+                    </div>
+                </div>
+                <div id="mistakes-section" class="display-none">
+                    <h3>Erreurs à revoir (<span id="mistakes-count">0</span>)</h3>
+                    <div id="mistakes-list"></div>
+                    <div class="export-row">
+                        <button type="button" id="copy-mistakes-btn" class="action-btn">Copier pour Anki (TSV)</button>
+                        <span id="copy-feedback" class="display-none">Copié dans le presse-papier</span>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="modal-restart-btn" class="action-btn primary-btn">Rejouer</button>
+                    <button type="button" id="modal-close-btn" class="action-btn">Fermer</button>
+                </div>
+            </div>
+        </div>
+
         <div id="donation-section" class="display-none">
-            <p class="footer-text">This app's <a href="https://github.com/baileysnyder/japanese-conjugation" target="_blank">source code</a> is available to use under the GPL-3.0 license.</p>
-            <p class="footer-text">If you've found this app useful and would like to help support it, please consider donating!</p>
-            <form action="https://www.paypal.com/donate" method="post" target="_top">
-                <input type="hidden" name="hosted_button_id" value="D3QUUDNRVJYLL" />
-                <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" />
-            </form>
+            <p class="footer-text">This app's <a href="https://github.com/baileysnyder/japanese-conjugation" target="_blank">source code</a> is available under the GPL-3.0 license.</p>
         </div>
     </div>
     </body>

@@ -14,6 +14,9 @@ export const CONJUGATION_TYPES = Object.freeze({
 	potential: "Potential",
 	imperative: "Imperative",
 	causativePassive: "Causative-Passive",
+	ba: "ば-form",
+	tara: "たら-form",
+	tai: "たい-form",
 });
 
 // Used to calculate maxScoreObjectsV2.
@@ -49,4 +52,10 @@ export const orderedMaxScoreSettings = Object.freeze([
 	"verbimperative",
 	// 11/29/25
 	"verbcausativepassive",
+	// 2026 update
+	"verbba",
+	"verbtara",
+	"verbtai",
+	"adjectiveba",
+	"adjectivetara",
 ]);
