@@ -484,6 +484,10 @@ body.hide-form-patterns .form-pattern-indicator {
 	display: none;
 }
 
+.results-screen .form-pattern-indicator {
+	display: inline !important;
+}
+
 /* ==========================================================================
    Input & Answering Experience
    ========================================================================== */

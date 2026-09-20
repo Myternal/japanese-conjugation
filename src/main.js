@@ -895,11 +895,11 @@ class ConjugationApp {
 			return;
 		}
 
-		// 2. Options view key handling: Escape exits options menu
-		const optionsView = document.getElementById("options-view");
-		if (optionsView && !optionsView.classList.contains("display-none")) {
-			if (isEscape) {
-				e.preventDefault();
+		// 2. Options view key handling: Escape toggles options menu (open / close)
+		if (isEscape) {
+			e.preventDefault();
+			const optionsView = document.getElementById("options-view");
+			if (optionsView && !optionsView.classList.contains("display-none")) {
 				const backBtn = document.getElementById("back-button");
 				if (backBtn && !backBtn.disabled) {
 					this.backButtonClicked(e);
@@ -916,6 +916,8 @@ class ConjugationApp {
 					}
 					this.loadMainView();
 				}
+			} else {
+				this.settingsButtonClicked(e);
 			}
 			return;
 		}
@@ -1004,6 +1006,11 @@ class ConjugationApp {
 			updateStatusBoxes(this.state.currentWord, inputValue);
 			showFurigana(this.state.settings.furigana, false);
 			showTranslation(this.state.settings.translation, false);
+
+			// Always reveal recall form patterns (~させる, ~られる...) at the moment of the answer
+			const showHint = !this.state.settings || this.state.settings.formHelp !== false;
+			document.getElementById("conjugation-inquery-text").innerHTML =
+				conjugationInqueryFormatting(this.state.currentWord.conjugation, showHint, true);
 
 			const inputWasCorrect = this.state.currentWord.conjugation.validAnswers.some(
 				(ans) => ans === inputValue
