@@ -468,11 +468,6 @@ span.rt {
 	to { opacity: 1; transform: translateY(0); }
 }
 
-.form-description-hint .form-desc-icon {
-	opacity: 0.85;
-	margin-right: 0.25rem;
-}
-
 .option-sub-desc {
 	font-size: 0.74rem;
 	font-weight: normal;
@@ -692,11 +687,6 @@ body.hide-form-patterns .form-pattern-indicator {
 
 .status-bunpro-link:active {
 	transform: translateY(0);
-}
-
-.bunpro-icon {
-	font-size: 0.85rem;
-	line-height: 1;
 }
 
 .bunpro-arrow {

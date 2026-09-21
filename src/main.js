@@ -95,7 +95,7 @@ function conjugationInqueryFormatting(conjugation, showHint = true, showPatterns
 
 	let html = `<div class="conjugation-inquery">${tags.join("")}</div>`;
 	if (showHint && desc && desc.shortText) {
-		html += `<div class="form-description-hint"><span class="form-desc-icon">💡</span>${escapeHtml(desc.shortText)}</div>`;
+		html += `<div class="form-description-hint">${escapeHtml(desc.shortText)}</div>`;
 	}
 
 	return html;
@@ -204,7 +204,7 @@ function updateStatusBoxes(word, entryText) {
 
 	const bunproUrl = getBunproLessonUrl(word.conjugation, word.wordJSON);
 	const bunproLinkHtml = bunproUrl
-		? `<div class="status-bunpro-container"><a href="${escapeHtml(bunproUrl)}" target="_blank" rel="noopener noreferrer" class="status-bunpro-link" title="Ouvrir la leçon Bunpro"><span class="bunpro-icon">📘</span> Leçon Bunpro <span class="bunpro-arrow">↗</span></a></div>`
+		? `<div class="status-bunpro-container"><a href="${escapeHtml(bunproUrl)}" target="_blank" rel="noopener noreferrer" class="status-bunpro-link" title="Ouvrir la leçon Bunpro">Leçon Bunpro <span class="bunpro-arrow">↗</span></a></div>`
 		: "";
 
 	if (word.conjugation.validAnswers.some((e) => e === entryText)) {
