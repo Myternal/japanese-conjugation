@@ -99,7 +99,7 @@ export class SessionManager {
 		this.questionStartTime = performance.now();
 	}
 
-	recordAnswer(isCorrect, { question, expected, userGiven = "", meaning = "", dictForm = "" } = {}) {
+	recordAnswer(isCorrect, { question, expected, userGiven = "", meaning = "", dictForm = "", bunproUrl = "" } = {}) {
 		const rawReactionMs = Math.round(performance.now() - this.questionStartTime);
 		const reactionMs = Math.max(0, rawReactionMs);
 		// Cap reaction time for statistical averaging at 15s to avoid idle skew
@@ -136,6 +136,7 @@ export class SessionManager {
 				userGiven: userGiven || "",
 				meaning: meaning || "",
 				dictForm: dictForm || "",
+				bunproUrl: bunproUrl || "",
 				reactionMs,
 			});
 

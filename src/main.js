@@ -45,6 +45,7 @@ import {
 	getConjugationDescription,
 	getConjugationFormLabel,
 } from "./engine/conjugationDescriptions.js";
+import { getBunproLessonUrl } from "./engine/bunproLinks.js";
 
 const isTouch = typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
 document.getElementById("press-any-key-text").textContent = isTouch
@@ -201,6 +202,11 @@ function updateStatusBoxes(word, entryText) {
 	statusBox.classList.remove("status-correct", "status-incorrect");
 	statusBox.style.background = "";
 
+	const bunproUrl = getBunproLessonUrl(word.conjugation, word.wordJSON);
+	const bunproLinkHtml = bunproUrl
+		? `<div class="status-bunpro-container"><a href="${escapeHtml(bunproUrl)}" target="_blank" rel="noopener noreferrer" class="status-bunpro-link" title="Ouvrir la leçon Bunpro"><span class="bunpro-icon">📘</span> Leçon Bunpro <span class="bunpro-arrow">↗</span></a></div>`
+		: "";
+
 	if (word.conjugation.validAnswers.some((e) => e === entryText)) {
 		statusBox.classList.add("status-correct");
 		const subConjugationForm = getSubConjugationForm(word, entryText);
@@ -208,7 +214,7 @@ function updateStatusBoxes(word, entryText) {
 			subConjugationForm != null
 				? '<span class="sub-conjugation-indicator">(' + escapeHtml(subConjugationForm) + ")</span>"
 				: ""
-		}<div class="status-answer-line">${escapeHtml(entryText)} <span class="status-mark-correct">○</span></div>`;
+		}<div class="status-answer-line">${escapeHtml(entryText)} <span class="status-mark-correct">○</span></div>${bunproLinkHtml}`;
 	} else {
 		statusBox.classList.add("status-incorrect");
 		document.getElementById("verb-box").style.background = typeToWordBoxColor(word.wordJSON.type);
@@ -218,7 +224,8 @@ function updateStatusBoxes(word, entryText) {
 
 		document.getElementById("status-text").innerHTML =
 			`<div class="status-user-answer">${entryText === "" ? "—" : escapeHtml(entryText)} <span class="status-mark-wrong">×</span></div>` +
-			`<div class="status-expected-answer">${escapeHtml(word.conjugation.validAnswers[0])} <span class="status-mark-correct">○</span></div>`;
+			`<div class="status-expected-answer">${escapeHtml(word.conjugation.validAnswers[0])} <span class="status-mark-correct">○</span></div>` +
+			bunproLinkHtml;
 	}
 }
 
@@ -802,11 +809,16 @@ class ConjugationApp {
 			dokkaiBtns[challenge.correctIndex].classList.add("correct-choice");
 		}
 
+		const bunproUrl = challenge.conjugation
+			? getBunproLessonUrl(challenge.conjugation, challenge.wordJSON)
+			: "";
+
 		const result = this.session.recordAnswer(isCorrect, {
 			question: challenge.prompt,
 			expected: challenge.correctLabel,
 			meaning: challenge.engMeaning,
 			dictForm: challenge.dictForm,
+			bunproUrl: bunproUrl || "",
 		});
 
 		// Sound & Streak update
@@ -858,7 +870,15 @@ class ConjugationApp {
 			mistakesList.innerHTML = summary.mistakes
 				.map(
 					(m) =>
-						`<div class="mistake-entry"><strong>${escapeHtml(m.question)}</strong> &rarr; <em>${escapeHtml(m.expected)}</em> <span style="color:#aaa">(${escapeHtml(m.meaning || m.dictForm)})</span></div>`
+						`<div class="mistake-entry">` +
+						`<div class="mistake-main">` +
+						`<strong>${escapeHtml(m.question)}</strong> &rarr; <em>${escapeHtml(m.expected)}</em> ` +
+						`<span class="mistake-meaning">(${escapeHtml(m.meaning || m.dictForm)})</span>` +
+						`</div>` +
+						(m.bunproUrl
+							? `<a href="${escapeHtml(m.bunproUrl)}" target="_blank" rel="noopener noreferrer" class="mistake-bunpro-link" title="Ouvrir la leçon Bunpro">Bunpro ↗</a>`
+							: "") +
+						`</div>`
 				)
 				.join("");
 		} else {
@@ -955,7 +975,8 @@ class ConjugationApp {
 		if (
 			this.state.activeScreen === SCREENS.results &&
 			isEnter &&
-			document.activeElement?.tagName !== "BUTTON"
+			document.activeElement?.tagName !== "BUTTON" &&
+			document.activeElement?.tagName !== "A"
 		) {
 			this.loadMainView();
 		}
@@ -967,7 +988,7 @@ class ConjugationApp {
 
 		if (
 			this.state.activeScreen === SCREENS.results &&
-			!e.target.closest("#options-button, #mode-bar, #sound-toggle-btn, #end-session-btn, #session-modal")
+			!e.target.closest("#options-button, #mode-bar, #sound-toggle-btn, #end-session-btn, #session-modal, a, .status-bunpro-link, .status-bunpro-container")
 		) {
 			this.loadMainView();
 		}
@@ -1016,6 +1037,11 @@ class ConjugationApp {
 				(ans) => ans === inputValue
 			);
 
+			const bunproUrl = getBunproLessonUrl(
+				this.state.currentWord.conjugation,
+				this.state.currentWord.wordJSON
+			);
+
 			// Record in Session Manager
 			const promptQuestion = `${toKanjiPlusHiragana(this.state.currentWord.wordJSON.kanji)} - ${this.state.currentWord.conjugation.type}`;
 			const result = this.session.recordAnswer(inputWasCorrect, {
@@ -1024,6 +1050,7 @@ class ConjugationApp {
 				userGiven: inputValue,
 				meaning: this.state.currentWord.wordJSON.eng,
 				dictForm: toKanjiPlusHiragana(this.state.currentWord.wordJSON.kanji),
+				bunproUrl: bunproUrl || "",
 			});
 
 			if (inputWasCorrect) {
